@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Everyday Advocates — Forms</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal:       #3A7D76;
+    --teal-light: #5BA09A;
+    --teal-pale:  #EAF4F3;
+    --amber:      #C47E3A;
+    --amber-pale: #FBF2E8;
+    --slate:      #2D3A3A;
+    --warm-grey:  #8A9090;
+    --cream:      #FAFAF8;
+    --border:     #DDE6E5;
+    --white:      #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #F0F3F3;
+    color: var(--slate);
+    min-height: 100vh;
+  }
+
+  /* ── TOP NAV ── */
+  .top-bar {
+    background: var(--slate);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--white);
+  }
+  .brand span { color: var(--teal-light); }
+  .brand-divider {
+    width: 1px; height: 20px;
+    background: rgba(255,255,255,0.2);
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── FORM SELECTOR ── */
+  .selector-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    overflow-x: auto;
+    white-space: nowrap;
+    display: flex;
+    gap: 4px;
+  }
+  .tab-btn {
+    display: inline-block;
+    padding: 14px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--warm-grey);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .tab-btn:hover { color: var(--teal); }
+  .tab-btn.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+    font-weight: 600;
+  }
+
+  /* ── FORM WRAPPER ── */
+  .form-area {
+    max-width: 760px;
+    margin: 32px auto;
+    padding: 0 20px 60px;
+  }
+
+  .form-page { display: none; }
+  .form-page.active { display: block; }
+
+  /* ── FORM CARD ── */
+  .form-card {
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .form-header {
+    background: var(--teal);
+    padding: 28px 32px;
+    color: var(--white);
+  }
+  .form-ref {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 6px;
+  }
+  .form-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .form-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.5;
+  }
+
+  .form-body { padding: 32px; }
+
+  /* ── FIELD GROUPS ── */
+  .field-section {
+    margin-bottom: 28px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--teal-pale);
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .field-grid.thirds { grid-template-columns: 1fr 1fr 1fr; }
+  .field-grid.full { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.span2 { grid-column: span 2; }
+  .field.span3 { grid-column: span 3; }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--slate);
+    letter-spacing: 0.01em;
+  }
+  label .req { color: var(--amber); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="time"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    color: var(--slate);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--teal);
+    background: var(--white);
+  }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+
+  .radio-group, .check-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .radio-option, .check-option {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--slate);
+    cursor: pointer;
+  }
+  .radio-option input, .check-option input {
+    width: auto;
+    padding: 0;
+    accent-color: var(--teal);
+  }
+
+  /* ── SIGNATURE ── */
+  .sig-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    align-items: end;
+  }
+
+  /* ── ACTIONS ── */
+  .form-actions {
+    padding: 24px 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    background: var(--cream);
+  }
+
+  .btn {
+    padding: 11px 24px;
+    border-radius: 7px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--teal); color: var(--white); }
+  .btn-secondary { background: var(--white); color: var(--teal); border: 1.5px solid var(--teal); }
+  .btn-amber { background: var(--amber); color: var(--white); }
+
+  .field-hint {
+    font-size: 11px;
+    color: var(--warm-grey);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .alert-box {
+    background: var(--amber-pale);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: var(--slate);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 560px) {
+    .field-grid { grid-template-columns: 1fr; }
+    .field-grid.thirds { grid-template-columns: 1fr; }
+    .field.span2, .field.span3 { grid-column: span 1; }
+    .sig-row { grid-template-columns: 1fr; }
+    .form-body { padding: 20px; }
+    .form-header { padding: 20px; }
+    .form-actions { flex-direction: column; }
+  }
+  /* ── Toast notifications (forms-app.js) ── */
+  .ea-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translate(-50%, 24px);
+    background: var(--slate);
+    color: var(--white);
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 1000;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .ea-toast.visible { opacity: 1; transform: translate(-50%, 0); }
+  .ea-toast-success { background: var(--teal); }
+  .ea-toast-error   { background: #B5453B; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="brand">Everyday <span>Advocates</span></div>
+  <div class="brand-divider"></div>
+  <div class="brand-sub">Forms & Documentation</div>
+</div>
+
+<!-- TAB SELECTOR -->
+<div class="selector-bar">
+  <button class="tab-btn active" onclick="showForm(0)">Enquiry</button>
+  <button class="tab-btn" onclick="showForm(1)">Consultation Notes</button>
+  <button class="tab-btn" onclick="showForm(2)">Client Profile</button>
+  <button class="tab-btn" onclick="showForm(3)">Session Summary</button>
+  <button class="tab-btn" onclick="showForm(4)">Incident Log</button>
+  <button class="tab-btn" onclick="showForm(5)">Timesheet</button>
+  <button class="tab-btn" onclick="showForm(6)">Service Agreement</button>
+  <button class="tab-btn" onclick="showForm(7)">Feedback</button>
+  <button class="tab-btn" onclick="showForm(8)">Lessons Learned</button>
+</div>
+
+<div class="form-area">
+
+  <!-- ═══════════════════════════════════════════════
+       1. ENQUIRY FORM
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page active" id="form-0">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-ENQ-001</div>
+        <div class="form-title">Enquiry Form</div>
+        <div class="form-desc">Completed by the person making the enquiry — either the prospective client or a family member on their behalf.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-section">
+          <div class="section-title">About You</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Your Full Name <span class="req">*</span></label>
+              <input type="text" placeholder="e.g. Sarah Johnson">
+            </div>
+            <div class="field">
+              <label>Relationship to Client</label>
+              <select>
+                <option value="">— Select —</option>
+                <option>I am the client</option>
+                <option>Son / Daughter</option>
+                <option>Spouse / Partner</option>
+                <option>Friend</option>
+                <option>Social Worker / Professional</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Phone Number <span class="req">*</span></label>
+              <input type="tel" placeholder="07700 000000">
+            </div>
+            <div class="field">
+              <label>Email Address</label>
+              <input type="email" placeholder="sarah@example.com">
+            </div>
+            <div class="field">
+              <label>Preferred Contact Method</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="contact_pref"> Phone</label>
+                <label class="radio-option"><input type="radio" name="contact_pref"> Email</label>
+                <label class="radio-option"><input type="radio" name="contact_pref"> Either</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Best Time to Call</label>
+              <select>
+                <option value="">— Select —</option>
+                <option>Morning (9am–12pm)</option>
+                <option>Afternoon (12pm–5pm)</option>
+                <option>Evening (5pm–7pm)</option>
+                <option>Any time</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">About the Person Needing Support</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Client's Full Name <span class="req">*</span></label>
+              <input type="text" placeholder="e.g. Margaret Johnson">
+            </div>
+            <div class="field">
+              <label>Client's Age (approx)</label>
+              <input type="number" placeholder="e.g. 78" min="50" max="110">
+            </div>
+            <div class="field span2">
+              <label>Client's Address / Area</label>
+              <input type="text" placeholder="Town or postcode area">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Services of Interest</div>
+          <div class="field">
+            <label>Which services are you interested in? (tick all that apply)</label>
+            <div class="check-group">
+              <label class="check-option"><input type="checkbox"> Companionship &amp; Wellbeing Visits</label>
+              <label class="check-option"><input type="checkbox"> Life Admin &amp; Support</label>
+              <label class="check-option"><input type="checkbox"> Tech Support for Seniors</label>
+              <label class="check-option"><input type="checkbox"> Hospital to Home Transition</label>
+              <label class="check-option"><input type="checkbox"> Not sure — need advice</label>
+            </div>
+          </div>
+          <div class="field" style="margin-top:16px;">
+            <label>Tell us a bit more about what you're looking for</label>
+            <textarea placeholder="Briefly describe the situation and what kind of support would be most helpful…"></textarea>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">How Did You Hear About Us?</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Source</label>
+              <select>
+                <option value="">— Select —</option>
+                <option>Facebook</option>
+                <option>Google search</option>
+                <option>Word of mouth / recommendation</option>
+                <option>GP / NHS referral</option>
+                <option>Social worker referral</option>
+                <option>Flyer / leaflet</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Date of Enquiry</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Submit Enquiry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       2. CONSULTATION NOTES
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-1">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-CON-001</div>
+        <div class="form-title">Consultation Notes</div>
+        <div class="form-desc">Completed by the advocate following an initial consultation call or meeting with the client or family.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-section">
+          <div class="section-title">Consultation Details</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Client Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date of Consultation <span class="req">*</span></label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Time</label>
+              <input type="time">
+            </div>
+            <div class="field">
+              <label>Duration (mins)</label>
+              <input type="number" placeholder="e.g. 45">
+            </div>
+            <div class="field">
+              <label>Format</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="consult_format"> Phone</label>
+                <label class="radio-option"><input type="radio" name="consult_format"> Video call</label>
+                <label class="radio-option"><input type="radio" name="consult_format"> In person</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Attended By</label>
+              <input type="text" placeholder="Client, family member names…">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Presenting Needs</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Summary of Client's Situation</label>
+              <textarea placeholder="What is the client's current situation? Living arrangements, health, social connection…" style="min-height:100px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Main Concerns Raised</label>
+              <textarea placeholder="What concerns did the client or family raise?"></textarea>
+            </div>
+            <div class="field">
+              <label>Services Discussed</label>
+              <div class="check-group">
+                <label class="check-option"><input type="checkbox"> Companionship Visits</label>
+                <label class="check-option"><input type="checkbox"> Life Admin Support</label>
+                <label class="check-option"><input type="checkbox"> Tech Support</label>
+                <label class="check-option"><input type="checkbox"> Hospital to Home</label>
+                <label class="check-option"><input type="checkbox"> Retirement Coaching</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Frequency / Schedule Discussed</label>
+              <input type="text" placeholder="e.g. Weekly visits, Wednesday afternoons">
+            </div>
+            <div class="field">
+              <label>Agreed Next Steps</label>
+              <textarea placeholder="What was agreed at the end of the consultation?"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Safeguarding &amp; Flags</div>
+          <div class="alert-box">Complete this section carefully. Any concerns noted here should be reviewed before first visit.</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Any safeguarding concerns noted?</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="safe_flag"> No</label>
+                <label class="radio-option"><input type="radio" name="safe_flag"> Yes — detail below</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Any health or mobility considerations?</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="health_flag"> No</label>
+                <label class="radio-option"><input type="radio" name="health_flag"> Yes — detail below</label>
+              </div>
+            </div>
+            <div class="field span2">
+              <label>Details (if yes to either above)</label>
+              <textarea placeholder="Provide details…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Advocate Notes</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Overall impressions / observations</label>
+              <textarea placeholder="How did the consultation go? Any observations about the client or family dynamic?"></textarea>
+            </div>
+            <div class="field">
+              <label>Advocate Name</label>
+              <input type="text">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Save Notes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       3. CLIENT PROFILE
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-2">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-CPF-001</div>
+        <div class="form-title">Client Profile</div>
+        <div class="form-desc">A comprehensive profile for each client. Completed before or at the start of the first visit and updated as needed.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-section">
+          <div class="section-title">Personal Details</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Full Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Preferred Name</label>
+              <input type="text" placeholder="e.g. Peggy">
+            </div>
+            <div class="field">
+              <label>Date of Birth</label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Gender</label>
+              <select>
+                <option value="">— Select —</option>
+                <option>Female</option>
+                <option>Male</option>
+                <option>Non-binary</option>
+                <option>Prefer not to say</option>
+              </select>
+            </div>
+            <div class="field span2">
+              <label>Home Address <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Phone Number</label>
+              <input type="tel">
+            </div>
+            <div class="field">
+              <label>Email Address</label>
+              <input type="email">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Emergency Contact</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Relationship</label>
+              <input type="text" placeholder="e.g. Daughter">
+            </div>
+            <div class="field">
+              <label>Phone <span class="req">*</span></label>
+              <input type="tel">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Living Situation</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Lives</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="living"> Alone</label>
+                <label class="radio-option"><input type="radio" name="living"> With partner</label>
+                <label class="radio-option"><input type="radio" name="living"> With family</label>
+                <label class="radio-option"><input type="radio" name="living"> Other</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Home Type</label>
+              <select>
+                <option value="">— Select —</option>
+                <option>House</option>
+                <option>Flat / Apartment</option>
+                <option>Sheltered housing</option>
+                <option>Retirement complex</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field span2">
+              <label>Other regular support in place (carers, family visits, etc.)</label>
+              <textarea placeholder="Note any existing support network…" style="min-height:70px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Health &amp; Wellbeing</div>
+          <div class="alert-box">This information is held confidentially and used only to ensure we provide safe, appropriate support.</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Relevant health conditions (as shared by client)</label>
+              <textarea placeholder="e.g. limited mobility, hearing impairment, mild memory difficulties…"></textarea>
+            </div>
+            <div class="field">
+              <label>Mobility considerations</label>
+              <input type="text" placeholder="e.g. uses a walking stick, no stairs">
+            </div>
+            <div class="field">
+              <label>Communication needs</label>
+              <input type="text" placeholder="e.g. hard of hearing, speak slowly and clearly">
+            </div>
+            <div class="field">
+              <label>GP Surgery Name &amp; Number</label>
+              <input type="text" placeholder="For reference in emergencies only">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Interests &amp; Preferences</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Hobbies &amp; interests</label>
+              <textarea placeholder="What does the client enjoy? What topics do they like to talk about?" style="min-height:70px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Things to avoid / sensitivities</label>
+              <textarea placeholder="e.g. doesn't like discussing family conflict, sensitive about memory" style="min-height:70px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Goals for the service</label>
+              <textarea placeholder="What does the client hope to get from working with us?" style="min-height:70px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Data Consent</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label class="check-option"><input type="checkbox"> Client consents to information being held securely and used to provide their service</label>
+            </div>
+            <div class="field">
+              <label class="check-option"><input type="checkbox"> Client consents to emergency contact being informed if there is a concern for their safety</label>
+            </div>
+            <div class="field">
+              <label class="check-option"><input type="checkbox"> Client consents to anonymous feedback being used to improve the service</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Sign Off</div>
+          <div class="sig-row">
+            <div class="field">
+              <label>Advocate completing this profile</label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       4. SESSION SUMMARY
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-3">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-SES-001</div>
+        <div class="form-title">Session Summary Form</div>
+        <div class="form-desc">Completed by the advocate after each visit or support session. Provides a record of activity and any follow-up actions.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-section">
+          <div class="section-title">Session Details</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Client Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Advocate Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Session Type</label>
+              <select>
+                <option value="">— Select —</option>
+                <option>Companionship Visit</option>
+                <option>Life Admin Support</option>
+                <option>Tech Support</option>
+                <option>Hospital to Home</option>
+                <option>Outing (walk / café)</option>
+                <option>Phone check-in</option>
+                <option>Mixed</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Start Time</label>
+              <input type="time">
+            </div>
+            <div class="field">
+              <label>End Time</label>
+              <input type="time">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Session Activity</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>What happened during this session?</label>
+              <textarea placeholder="Describe the activities, topics of conversation, tasks completed…" style="min-height:110px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Client's mood &amp; wellbeing</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="mood"> Very positive</label>
+                <label class="radio-option"><input type="radio" name="mood"> Positive</label>
+                <label class="radio-option"><input type="radio" name="mood"> Neutral</label>
+                <label class="radio-option"><input type="radio" name="mood"> Low</label>
+                <label class="radio-option"><input type="radio" name="mood"> Concerning</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Mood / wellbeing notes</label>
+              <textarea placeholder="Any observations about how the client seemed today?" style="min-height:70px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Actions &amp; Follow-Up</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Any tasks outstanding or follow-up needed?</label>
+              <textarea placeholder="e.g. GP appointment to book, letter to chase, family to be updated…"></textarea>
+            </div>
+            <div class="field">
+              <label>Any concerns to flag?</label>
+              <div class="radio-group" style="margin-bottom:10px;">
+                <label class="radio-option"><input type="radio" name="concern"> No concerns</label>
+                <label class="radio-option"><input type="radio" name="concern"> Minor — monitor</label>
+                <label class="radio-option"><input type="radio" name="concern"> Significant — action required</label>
+              </div>
+              <textarea placeholder="If concerns noted, describe here…" style="min-height:70px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Next session planned</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Save Summary</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       5. INCIDENT LOG
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-4">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-INC-001</div>
+        <div class="form-title">Incident Log</div>
+        <div class="form-desc">Completed as soon as possible after any incident, near-miss, safeguarding concern, or unexpected event during service delivery.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="alert-box">
+          Complete this form within 24 hours of any incident. If there is an immediate risk to safety, contact emergency services first.
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Incident Details</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Client Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Advocate Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date of Incident <span class="req">*</span></label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Time of Incident</label>
+              <input type="time">
+            </div>
+            <div class="field span2">
+              <label>Location</label>
+              <input type="text" placeholder="e.g. Client's home, street, café name">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Incident Classification</div>
+          <div class="field">
+            <label>Type of Incident <span class="req">*</span></label>
+            <div class="check-group">
+              <label class="check-option"><input type="checkbox"> Fall or injury</label>
+              <label class="check-option"><input type="checkbox"> Medical episode</label>
+              <label class="check-option"><input type="checkbox"> Safeguarding concern</label>
+              <label class="check-option"><input type="checkbox"> Client distress</label>
+              <label class="check-option"><input type="checkbox"> Property damage</label>
+              <label class="check-option"><input type="checkbox"> Near-miss</label>
+              <label class="check-option"><input type="checkbox"> Complaint from client / family</label>
+              <label class="check-option"><input type="checkbox"> Other</label>
+            </div>
+          </div>
+          <div class="field" style="margin-top:16px;">
+            <label>Severity</label>
+            <div class="radio-group">
+              <label class="radio-option"><input type="radio" name="severity"> Low — no immediate harm</label>
+              <label class="radio-option"><input type="radio" name="severity"> Medium — required action</label>
+              <label class="radio-option"><input type="radio" name="severity"> High — emergency services involved</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Description</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>What happened? (factual account) <span class="req">*</span></label>
+              <textarea placeholder="Describe exactly what happened, in the order it occurred. Stick to facts." style="min-height:120px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Immediate actions taken</label>
+              <textarea placeholder="What did you do in response? Who did you contact?"></textarea>
+            </div>
+            <div class="field">
+              <label>Was anyone else present?</label>
+              <input type="text" placeholder="Names and roles of any witnesses">
+            </div>
+            <div class="field">
+              <label>Was the emergency contact / family informed?</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="family_informed"> Yes</label>
+                <label class="radio-option"><input type="radio" name="family_informed"> No</label>
+                <label class="radio-option"><input type="radio" name="family_informed"> N/A</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Follow-Up</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Further action required?</label>
+              <textarea placeholder="e.g. GP referral, review of risk assessment, change to service delivery plan…"></textarea>
+            </div>
+            <div class="field">
+              <label>Date reported to supervisor / line manager</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Sign Off</div>
+          <div class="sig-row">
+            <div class="field">
+              <label>Completed by</label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date completed</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-amber">Log Incident</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       6. TIMESHEET
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-5">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-TS-001</div>
+        <div class="form-title">Timesheet</div>
+        <div class="form-desc">Weekly record of hours worked per client. Completed by the advocate and submitted for approval.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-section">
+          <div class="section-title">Advocate &amp; Period</div>
+          <div class="field-grid thirds">
+            <div class="field">
+              <label>Advocate Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Week Commencing <span class="req">*</span></label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Week Ending</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Session Log</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+              <thead>
+                <tr style="background:var(--teal-pale);">
+                  <th style="padding:10px 12px; text-align:left; color:var(--teal); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap;">Date</th>
+                  <th style="padding:10px 12px; text-align:left; color:var(--teal); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Client</th>
+                  <th style="padding:10px 12px; text-align:left; color:var(--teal); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap;">Service Type</th>
+                  <th style="padding:10px 12px; text-align:left; color:var(--teal); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap;">Start</th>
+                  <th style="padding:10px 12px; text-align:left; color:var(--teal); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap;">End</th>
+                  <th style="padding:10px 12px; text-align:left; color:var(--teal); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Hours</th>
+                </tr>
+              </thead>
+              <tbody id="ts-body">
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:8px 10px;"><input type="date" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="text" style="padding:6px 8px; font-size:12px;" placeholder="Client name"></td>
+                  <td style="padding:8px 10px;">
+                    <select style="padding:6px 8px; font-size:12px;">
+                      <option value="">—</option>
+                      <option>Companionship</option>
+                      <option>Life Admin</option>
+                      <option>Tech Support</option>
+                      <option>Hospital to Home</option>
+                      <option>Travel</option>
+                      <option>Admin</option>
+                    </select>
+                  </td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="number" step="0.25" style="padding:6px 8px; font-size:12px; width:70px;" placeholder="0"></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:8px 10px;"><input type="date" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="text" style="padding:6px 8px; font-size:12px;" placeholder="Client name"></td>
+                  <td style="padding:8px 10px;"><select style="padding:6px 8px; font-size:12px;"><option>—</option><option>Companionship</option><option>Life Admin</option><option>Tech Support</option><option>Hospital to Home</option><option>Travel</option><option>Admin</option></select></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="number" step="0.25" style="padding:6px 8px; font-size:12px; width:70px;" placeholder="0"></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:8px 10px;"><input type="date" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="text" style="padding:6px 8px; font-size:12px;" placeholder="Client name"></td>
+                  <td style="padding:8px 10px;"><select style="padding:6px 8px; font-size:12px;"><option>—</option><option>Companionship</option><option>Life Admin</option><option>Tech Support</option><option>Hospital to Home</option><option>Travel</option><option>Admin</option></select></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="number" step="0.25" style="padding:6px 8px; font-size:12px; width:70px;" placeholder="0"></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:8px 10px;"><input type="date" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="text" style="padding:6px 8px; font-size:12px;" placeholder="Client name"></td>
+                  <td style="padding:8px 10px;"><select style="padding:6px 8px; font-size:12px;"><option>—</option><option>Companionship</option><option>Life Admin</option><option>Tech Support</option><option>Hospital to Home</option><option>Travel</option><option>Admin</option></select></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="number" step="0.25" style="padding:6px 8px; font-size:12px; width:70px;" placeholder="0"></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:8px 10px;"><input type="date" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="text" style="padding:6px 8px; font-size:12px;" placeholder="Client name"></td>
+                  <td style="padding:8px 10px;"><select style="padding:6px 8px; font-size:12px;"><option>—</option><option>Companionship</option><option>Life Admin</option><option>Tech Support</option><option>Hospital to Home</option><option>Travel</option><option>Admin</option></select></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="time" style="padding:6px 8px; font-size:12px;"></td>
+                  <td style="padding:8px 10px;"><input type="number" step="0.25" style="padding:6px 8px; font-size:12px; width:70px;" placeholder="0"></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr style="background:var(--teal-pale);">
+                  <td colspan="5" style="padding:10px 12px; font-weight:600; font-size:13px; color:var(--teal);">Total Hours</td>
+                  <td style="padding:10px 12px;"><input type="number" step="0.25" style="padding:6px 8px; font-size:13px; font-weight:600; width:70px; background:var(--white);" placeholder="0"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Expenses (if applicable)</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Travel / other expenses to claim</label>
+              <textarea placeholder="Describe any expenses with amounts e.g. mileage, parking, client outings…" style="min-height:70px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Declaration</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Advocate Signature (type name)</label>
+              <input type="text" placeholder="Type your full name to confirm">
+            </div>
+            <div class="field">
+              <label>Date Submitted</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Submit Timesheet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       7. SERVICE AGREEMENT
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-6">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-SA-001</div>
+        <div class="form-title">Service Agreement</div>
+        <div class="form-desc">Agreed and signed by the client (or family representative) before the service begins. Sets out expectations for both parties.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="alert-box">
+          Note: This form sets out the terms of the service. Please read carefully before signing. Everyday Advocates is a non-regulated social support service and does not provide personal care, medical care, or regulated financial advice.
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Parties</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Client Full Name <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date Agreement Starts <span class="req">*</span></label>
+              <input type="date">
+            </div>
+            <div class="field span2">
+              <label>Client Address</label>
+              <input type="text">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Services Agreed</div>
+          <div class="field">
+            <label>Services to be provided (tick all that apply)</label>
+            <div class="check-group">
+              <label class="check-option"><input type="checkbox"> Companionship &amp; Wellbeing Visits</label>
+              <label class="check-option"><input type="checkbox"> Life Admin Support</label>
+              <label class="check-option"><input type="checkbox"> Tech Support for Seniors</label>
+              <label class="check-option"><input type="checkbox"> Hospital to Home Transition</label>
+            </div>
+          </div>
+          <div class="field-grid" style="margin-top:16px;">
+            <div class="field">
+              <label>Agreed frequency</label>
+              <input type="text" placeholder="e.g. Weekly, every Wednesday 2–4pm">
+            </div>
+            <div class="field">
+              <label>Agreed hourly rate (£)</label>
+              <input type="number" placeholder="e.g. 20.00" step="0.50">
+            </div>
+            <div class="field span2">
+              <label>Any specific tasks or scope agreed</label>
+              <textarea placeholder="e.g. Help with correspondence, weekly walk, setting up WhatsApp on tablet…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Key Terms</div>
+          <div style="font-size:13px; line-height:1.8; color:var(--slate); background:var(--cream); padding:18px 20px; border-radius:8px; border:1px solid var(--border);">
+            <p style="margin-bottom:10px;"><strong>1. Scope of service.</strong> Everyday Advocates provides social support, companionship, and life administration assistance. We do not provide regulated personal care, medical advice, or financial advice.</p>
+            <p style="margin-bottom:10px;"><strong>2. Confidentiality.</strong> All information shared by the client is held confidentially and will not be shared with third parties without consent, except where there is a concern for safety.</p>
+            <p style="margin-bottom:10px;"><strong>3. Cancellations.</strong> Please give at least 24 hours' notice to cancel or reschedule a visit. Late cancellations may incur a charge.</p>
+            <p style="margin-bottom:10px;"><strong>4. Boundaries.</strong> Advocates will not handle client finances directly (e.g. hold cash, access bank accounts) or perform tasks outside the agreed scope without discussion.</p>
+            <p style="margin-bottom:10px;"><strong>5. Safeguarding.</strong> If an advocate has any concern for a client's safety or welfare, they are obligated to escalate appropriately, including to emergency services if necessary.</p>
+            <p><strong>6. Termination.</strong> Either party may end this agreement with 2 weeks' written notice.</p>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Consent &amp; Signatures</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label class="check-option" style="font-size:13px;"><input type="checkbox"> I have read and agree to the terms above</label>
+            </div>
+            <div class="field">
+              <label class="check-option" style="font-size:13px;"><input type="checkbox"> I consent to Everyday Advocates holding my personal information to deliver this service</label>
+            </div>
+          </div>
+          <div class="field-grid" style="margin-top:20px;">
+            <div class="field">
+              <label>Client / Representative Signature (type name) <span class="req">*</span></label>
+              <input type="text" placeholder="Full name as signature">
+            </div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Advocate Signature (type name)</label>
+              <input type="text" placeholder="Full name as signature">
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Save Agreement</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       8. FEEDBACK FORM
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-7">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-FB-001</div>
+        <div class="form-title">Feedback Form</div>
+        <div class="form-desc">Completed by the client or a family member. Used to improve the quality of our service. Can be anonymous.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-section">
+          <div class="section-title">About You (Optional)</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Your Name</label>
+              <input type="text" placeholder="Leave blank to remain anonymous">
+            </div>
+            <div class="field">
+              <label>Are you</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="fb_who"> The client</label>
+                <label class="radio-option"><input type="radio" name="fb_who"> A family member</label>
+                <label class="radio-option"><input type="radio" name="fb_who"> Other</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Advocate Name (if known)</label>
+              <input type="text">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Ratings</div>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+
+            <div class="field">
+              <label>Overall satisfaction with the service</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="r1"> ⭐ 1 — Poor</label>
+                <label class="radio-option"><input type="radio" name="r1"> ⭐⭐ 2</label>
+                <label class="radio-option"><input type="radio" name="r1"> ⭐⭐⭐ 3 — OK</label>
+                <label class="radio-option"><input type="radio" name="r1"> ⭐⭐⭐⭐ 4</label>
+                <label class="radio-option"><input type="radio" name="r1"> ⭐⭐⭐⭐⭐ 5 — Excellent</label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Quality of the advocate (warmth, reliability, professionalism)</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="r2"> ⭐ 1</label>
+                <label class="radio-option"><input type="radio" name="r2"> ⭐⭐ 2</label>
+                <label class="radio-option"><input type="radio" name="r2"> ⭐⭐⭐ 3</label>
+                <label class="radio-option"><input type="radio" name="r2"> ⭐⭐⭐⭐ 4</label>
+                <label class="radio-option"><input type="radio" name="r2"> ⭐⭐⭐⭐⭐ 5</label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Did the service meet your needs?</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="r3"> Yes, fully</label>
+                <label class="radio-option"><input type="radio" name="r3"> Mostly</label>
+                <label class="radio-option"><input type="radio" name="r3"> Partly</label>
+                <label class="radio-option"><input type="radio" name="r3"> Not really</label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Would you recommend Everyday Advocates to others?</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="r4"> Definitely</label>
+                <label class="radio-option"><input type="radio" name="r4"> Probably</label>
+                <label class="radio-option"><input type="radio" name="r4"> Not sure</label>
+                <label class="radio-option"><input type="radio" name="r4"> Probably not</label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Your Comments</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>What has been most helpful or valuable?</label>
+              <textarea placeholder="Tell us what you've appreciated most…"></textarea>
+            </div>
+            <div class="field">
+              <label>What could we do better?</label>
+              <textarea placeholder="Any suggestions for improvement are very welcome…"></textarea>
+            </div>
+            <div class="field">
+              <label>Anything else you'd like to share?</label>
+              <textarea placeholder="Any other comments…"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       9. LESSONS LEARNED LOG
+  ═══════════════════════════════════════════════ -->
+  <div class="form-page" id="form-8">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-ref">EA-LL-001</div>
+        <div class="form-title">Lessons Learned Log</div>
+        <div class="form-desc">Completed by the advocate after any significant experience — positive or challenging — that contains learning for the service. Feeds directly into the service manual.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-section">
+          <div class="section-title">Log Entry Details</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Completed by <span class="req">*</span></label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="date">
+            </div>
+            <div class="field">
+              <label>Related Client (optional)</label>
+              <input type="text" placeholder="First name or client ref only">
+            </div>
+            <div class="field">
+              <label>Category</label>
+              <select>
+                <option value="">— Select —</option>
+                <option>Service delivery</option>
+                <option>Client communication</option>
+                <option>Family / third party</option>
+                <option>Safeguarding</option>
+                <option>Admin / process</option>
+                <option>Staff / volunteer management</option>
+                <option>Boundaries</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">The Experience</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>What happened? <span class="req">*</span></label>
+              <textarea placeholder="Describe the situation or experience — what occurred, when, and in what context." style="min-height:100px;"></textarea>
+            </div>
+            <div class="field">
+              <label>What went well?</label>
+              <textarea placeholder="What worked? What would you do the same again?"></textarea>
+            </div>
+            <div class="field">
+              <label>What was challenging or didn't go to plan?</label>
+              <textarea placeholder="Be honest — this log is for learning, not evaluation."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">The Learning</div>
+          <div class="field-grid full">
+            <div class="field">
+              <label>Key lesson(s) from this experience <span class="req">*</span></label>
+              <textarea placeholder="What would you do differently? What insight does this give for the service?" style="min-height:90px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Should this change how we work? (e.g. update a process, add to the manual)</label>
+              <div class="radio-group" style="margin-bottom:12px;">
+                <label class="radio-option"><input type="radio" name="change_needed"> Yes — specific change needed</label>
+                <label class="radio-option"><input type="radio" name="change_needed"> Possibly — worth reviewing</label>
+                <label class="radio-option"><input type="radio" name="change_needed"> No — for awareness only</label>
+              </div>
+              <textarea placeholder="If yes, describe what change you'd recommend…" style="min-height:70px;"></textarea>
+            </div>
+            <div class="field">
+              <label>Priority to action</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="priority"> High — urgent</label>
+                <label class="radio-option"><input type="radio" name="priority"> Medium — next review</label>
+                <label class="radio-option"><input type="radio" name="priority"> Low — log for reference</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="section-title">Review</div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Reviewed by (manager / owner)</label>
+              <input type="text">
+            </div>
+            <div class="field">
+              <label>Date reviewed</label>
+              <input type="date">
+            </div>
+            <div class="field span2">
+              <label>Action taken / decision</label>
+              <textarea placeholder="What was done as a result of this learning?" style="min-height:70px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn btn-primary">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /form-area -->
+
+<script>
+  function showForm(index) {
+    document.querySelectorAll('.form-page').forEach((p, i) => {
+      p.classList.toggle('active', i === index);
+    });
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', i === index);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="forms-app.js"></script>
+</body>
+</html>
