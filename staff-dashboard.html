@@ -10,10 +10,44 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="admin.css">
+<style>
+/* ── Staff-portal extras ── */
+.resource-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; padding:20px 24px; }
+.resource-card { border:1px solid var(--border); border-radius:var(--r-md); padding:18px 20px; display:flex; align-items:flex-start; gap:14px; background:var(--bg-surface); transition:box-shadow .2s; }
+.resource-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.07); }
+.resource-icon { font-size:1.6rem; flex-shrink:0; line-height:1; }
+.resource-info { flex:1; min-width:0; }
+.resource-title { font-weight:600; font-size:.9rem; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.resource-meta { font-size:.77rem; color:var(--text-muted); }
+.resource-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.video-card { flex-direction:column; gap:10px; }
+.video-thumb { width:100%; aspect-ratio:16/9; background:var(--bg-muted); border-radius:var(--r-sm); overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; }
+.video-thumb iframe { width:100%; height:100%; border:0; }
+.video-thumb-placeholder { display:flex; flex-direction:column; align-items:center; gap:6px; color:var(--text-muted); font-size:.8rem; }
+.tab-bar { display:flex; gap:0; border-bottom:1px solid var(--border); padding:0 24px; }
+.tab-btn { padding:12px 18px; font-size:.85rem; font-weight:500; color:var(--text-muted); border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .2s,border-color .2s; }
+.tab-btn.active { color:var(--teal); border-bottom-color:var(--teal); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+.upload-zone { border:2px dashed var(--border); border-radius:var(--r-md); padding:32px; text-align:center; color:var(--text-muted); font-size:.88rem; margin:20px 24px; cursor:pointer; transition:border-color .2s,background .2s; }
+.upload-zone:hover { border-color:var(--teal); background:var(--teal-mist); }
+.upload-zone input[type=file] { display:none; }
+.section-search { padding:16px 24px 0; }
+.section-search input { width:100%; max-width:380px; padding:8px 14px; border:1px solid var(--border); border-radius:var(--r-sm); font-size:.88rem; background:var(--bg-surface); color:var(--text); }
+.empty-resources { padding:48px 24px; text-align:center; color:var(--text-muted); }
+.empty-resources .empty-icon { font-size:2rem; margin-bottom:10px; }
+.timeout-notice { position:fixed; top:0;left:0;right:0; background:var(--amber); color:#fff; text-align:center; padding:10px 16px; z-index:9999; font-size:.88rem; display:none; }
+.timeout-notice button { margin-left:12px; background:#fff; color:var(--amber); border:none; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:.82rem; font-weight:600; }
+</style>
 </head>
 <body class="admin-body">
 
-<!-- ── Auth gate (shown while checking session) ── -->
+<!-- Session timeout warning -->
+<div class="timeout-notice" id="timeoutNotice">
+  You've been inactive for a while. You'll be signed out soon. <button id="staySignedIn">Stay signed in</button>
+</div>
+
+<!-- Auth gate -->
 <div class="admin-gate" id="authGate">
   <div class="admin-gate-card">
     <div class="admin-spinner"></div>
@@ -22,44 +56,33 @@
   </div>
 </div>
 
-<!-- ── Access denied (not active staff) ── -->
+<!-- Access denied -->
 <div class="admin-gate" id="accessDenied" style="display:none;">
   <div class="admin-gate-card">
     <div class="admin-gate-icon">🔒</div>
     <h2>Access restricted</h2>
-    <p id="accessDeniedMsg">Your account doesn't have access to this area. Contact your administrator if you think this is a mistake.</p>
+    <p id="accessDeniedMsg">Your account doesn't have access to this area.</p>
     <a href="admin-login.html" class="btn btn-primary" style="display:inline-flex;justify-content:center;">Back to sign in</a>
   </div>
 </div>
 
-<!-- ── Main dashboard shell (hidden until auth confirmed) ── -->
+<!-- Main shell -->
 <div class="admin-shell" id="dashShell" style="display:none;">
-
-  <!-- Mobile sidebar overlay -->
   <div class="admin-sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- ────── SIDEBAR ────── -->
   <aside class="admin-sidebar" id="adminSidebar">
     <div class="admin-logo">
-      <div class="admin-logo-mark"><img src="logo.png"></div>
+      <div class="admin-logo-mark">EA</div>
       <span>Everyday Advocates</span>
     </div>
-
     <nav class="admin-nav" role="navigation" aria-label="Dashboard navigation">
-      <button class="admin-nav-link active" data-section="overview">
-        <span class="nav-ico">📊</span> Overview
-      </button>
-      <button class="admin-nav-link" data-section="forms">
-        <span class="nav-ico">📋</span> My Submissions
-      </button>
-      <button class="admin-nav-link" data-section="toolkit">
-        <span class="nav-ico">🗂️</span> Forms Toolkit
-      </button>
-      <button class="admin-nav-link" data-section="settings">
-        <span class="nav-ico">⚙️</span> Settings
-      </button>
+      <button class="admin-nav-link active" data-section="overview"><span class="nav-ico">📊</span> Overview</button>
+      <button class="admin-nav-link" data-section="forms-toolkit"><span class="nav-ico">📋</span> Forms &amp; Documents</button>
+      <button class="admin-nav-link" data-section="videos"><span class="nav-ico">🎬</span> Training Videos</button>
+      <button class="admin-nav-link" data-section="manuals"><span class="nav-ico">📚</span> Manuals &amp; Guides</button>
+      <button class="admin-nav-link" data-section="my-submissions"><span class="nav-ico">📤</span> My Submissions</button>
+      <button class="admin-nav-link" data-section="settings"><span class="nav-ico">⚙️</span> Settings</button>
     </nav>
-
     <div class="admin-sidebar-foot">
       <div class="admin-user">
         <div class="admin-user-avatar" id="userAvatar">—</div>
@@ -68,16 +91,11 @@
           <span id="userRole"></span>
         </div>
       </div>
-      <button class="admin-nav-link" id="signOutBtn" style="color:var(--text-muted);">
-        <span class="nav-ico">🚪</span> Sign out
-      </button>
+      <button class="admin-nav-link" id="signOutBtn" style="color:var(--text-muted);"><span class="nav-ico">🚪</span> Sign out</button>
     </div>
   </aside>
 
-  <!-- ────── MAIN ────── -->
   <main class="admin-main">
-
-    <!-- Topbar -->
     <div class="admin-topbar">
       <div style="display:flex;align-items:center;gap:14px;">
         <button class="admin-menu-btn" id="menuBtn" aria-label="Open menu">
@@ -93,16 +111,15 @@
       </div>
     </div>
 
-    <!-- ─── Content area ─── -->
     <div class="admin-content">
 
       <!-- ══ OVERVIEW ══ -->
       <section class="admin-section active" id="section-overview">
-        <div class="stat-grid" id="statGrid">
+        <div class="stat-grid">
           <div class="stat-card">
             <div class="stat-icon">📋</div>
             <div class="stat-value" id="statTotal">—</div>
-            <div class="stat-label">Total submissions</div>
+            <div class="stat-label">My submissions</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">🗓️</div>
@@ -112,46 +129,160 @@
           <div class="stat-card">
             <div class="stat-icon">🕒</div>
             <div class="stat-value" id="statLast">—</div>
-            <div class="stat-label">Most recent</div>
+            <div class="stat-label">Last submission</div>
           </div>
         </div>
 
-        <!-- Recent submissions -->
         <div class="admin-panel">
           <div class="admin-panel-head">
-            <h3>Recent submissions</h3>
-            <button class="btn-tiny primary" data-section="forms">View all</button>
+            <h3>Quick access</h3>
           </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:20px 24px;">
+            <button class="resource-card" data-section="forms-toolkit" style="border:none;cursor:pointer;text-align:left;">
+              <span class="resource-icon">📋</span>
+              <div class="resource-info"><div class="resource-title">Forms &amp; Documents</div><div class="resource-meta">9 operational forms</div></div>
+            </button>
+            <button class="resource-card" data-section="videos" style="border:none;cursor:pointer;text-align:left;">
+              <span class="resource-icon">🎬</span>
+              <div class="resource-info"><div class="resource-title">Training Videos</div><div class="resource-meta">Video guides &amp; walkthroughs</div></div>
+            </button>
+            <button class="resource-card" data-section="manuals" style="border:none;cursor:pointer;text-align:left;">
+              <span class="resource-icon">📚</span>
+              <div class="resource-info"><div class="resource-title">Manuals &amp; Guides</div><div class="resource-meta">PDF staff resources</div></div>
+            </button>
+            <button class="resource-card" data-section="my-submissions" style="border:none;cursor:pointer;text-align:left;">
+              <span class="resource-icon">📤</span>
+              <div class="resource-info"><div class="resource-title">My Submissions</div><div class="resource-meta">Your saved forms</div></div>
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-head"><h3>Recent submissions</h3><button class="btn-tiny primary" data-section="my-submissions">View all</button></div>
           <div class="admin-panel-body">
             <div class="admin-table-wrap">
               <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Form type</th>
-                    <th>Reference</th>
-                    <th>Submitted</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="recentFormsBody">
-                  <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">⏳</div>Loading…</div></td></tr>
-                </tbody>
+                <thead><tr><th>Form type</th><th>Reference</th><th>Submitted</th><th></th></tr></thead>
+                <tbody id="recentFormsBody"><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">⏳</div>Loading…</div></td></tr></tbody>
               </table>
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- Quick links -->
+      <!-- ══ FORMS & DOCUMENTS (SP-03, SP-06) ══ -->
+      <section class="admin-section" id="section-forms-toolkit">
         <div class="admin-panel">
-          <div class="admin-panel-head"><h3>Quick links</h3></div>
-          <div class="admin-panel-body" style="padding:20px 24px;display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="everyday-advocates-lessons_learned_forms.html" class="btn btn-primary" style="width:auto;display:inline-flex;">Open Forms Toolkit</a>
+          <div class="admin-panel-head"><h3>Operational Forms</h3><a class="btn-tiny primary" href="everyday-advocates-lessons_learned_forms.html" target="_blank">Open toolkit</a></div>
+          <div class="resource-grid" id="formsGrid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ TRAINING VIDEOS (SP-04) ══ -->
+      <section class="admin-section" id="section-videos">
+        <div class="admin-panel">
+          <div class="admin-panel-head">
+            <h3>Training Videos</h3>
+          </div>
+          <div class="tab-bar">
+            <button class="tab-btn active" data-tab="videos-browse">Browse</button>
+            <button class="tab-btn" data-tab="videos-add">Add video</button>
+          </div>
+
+          <!-- Browse tab -->
+          <div class="tab-pane active" id="videos-browse">
+            <div class="section-search"><input type="text" id="videoSearch" placeholder="Search videos…" autocomplete="off"></div>
+            <div class="resource-grid" id="videosGrid">
+              <div class="empty-resources"><div class="empty-icon">🎬</div><p>No training videos yet.</p><p style="font-size:.8rem;">Use the "Add video" tab to add your first video.</p></div>
+            </div>
+          </div>
+
+          <!-- Add video tab -->
+          <div class="tab-pane" id="videos-add">
+            <div style="padding:24px;max-width:540px;">
+              <p style="font-size:.88rem;color:var(--text-muted);margin-bottom:20px;">Paste a YouTube or Vimeo link to add a training video. Videos are stored in your browser for all staff to see.</p>
+              <div class="field-group" style="margin-bottom:14px;">
+                <label for="videoTitle">Video title</label>
+                <input type="text" id="videoTitle" placeholder="e.g. First Visit Guidance">
+              </div>
+              <div class="field-group" style="margin-bottom:14px;">
+                <label for="videoCategory">Category</label>
+                <select id="videoCategory" class="admin-select" style="width:100%;padding:9px 12px;">
+                  <option value="General">General</option>
+                  <option value="First Visit">First Visit</option>
+                  <option value="Life Admin">Life Admin</option>
+                  <option value="Tech Support">Tech Support</option>
+                  <option value="Safeguarding">Safeguarding</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="field-group" style="margin-bottom:14px;">
+                <label for="videoUrl">YouTube or Vimeo URL</label>
+                <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=...">
+              </div>
+              <div class="field-group" style="margin-bottom:20px;">
+                <label for="videoDesc">Short description (optional)</label>
+                <textarea id="videoDesc" rows="2" placeholder="Brief description of what this video covers…" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:.88rem;background:var(--bg-surface);color:var(--text);resize:vertical;"></textarea>
+              </div>
+              <button class="btn btn-primary" id="addVideoBtn" style="width:auto;">Add video</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ MANUALS & GUIDES (SP-05, SP-08) ══ -->
+      <section class="admin-section" id="section-manuals">
+        <div class="admin-panel">
+          <div class="admin-panel-head"><h3>Manuals &amp; Guides</h3></div>
+          <div class="tab-bar">
+            <button class="tab-btn active" data-tab="manuals-browse">Browse</button>
+            <button class="tab-btn" data-tab="manuals-add">Add document</button>
+          </div>
+
+          <!-- Browse tab -->
+          <div class="tab-pane active" id="manuals-browse">
+            <div class="section-search"><input type="text" id="manualSearch" placeholder="Search documents…" autocomplete="off"></div>
+            <div class="resource-grid" id="manualsGrid">
+              <div class="empty-resources"><div class="empty-icon">📚</div><p>No manuals uploaded yet.</p><p style="font-size:.8rem;">Use the "Add document" tab to upload PDFs.</p></div>
+            </div>
+          </div>
+
+          <!-- Add document tab -->
+          <div class="tab-pane" id="manuals-add">
+            <div style="padding:24px;max-width:540px;">
+              <p style="font-size:.88rem;color:var(--text-muted);margin-bottom:20px;">Add a link to a PDF manual or guide. Host the PDF on Google Drive, Dropbox, or any file host, then paste the share link below.</p>
+              <div class="field-group" style="margin-bottom:14px;">
+                <label for="manualTitle">Document title</label>
+                <input type="text" id="manualTitle" placeholder="e.g. Staff Service Manual">
+              </div>
+              <div class="field-group" style="margin-bottom:14px;">
+                <label for="manualCategory">Category</label>
+                <select id="manualCategory" class="admin-select" style="width:100%;padding:9px 12px;">
+                  <option value="General">General</option>
+                  <option value="Safeguarding">Safeguarding</option>
+                  <option value="Service Boundaries">Service Boundaries</option>
+                  <option value="Policies">Policies</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="field-group" style="margin-bottom:14px;">
+                <label for="manualUrl">Document link (PDF or Google Drive)</label>
+                <input type="url" id="manualUrl" placeholder="https://drive.google.com/file/d/...">
+              </div>
+              <div class="field-group" style="margin-bottom:20px;">
+                <label for="manualDesc">Short description (optional)</label>
+                <textarea id="manualDesc" rows="2" placeholder="Brief description of what this document covers…" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:.88rem;background:var(--bg-surface);color:var(--text);resize:vertical;"></textarea>
+              </div>
+              <button class="btn btn-primary" id="addManualBtn" style="width:auto;">Add document</button>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- ══ MY SUBMISSIONS ══ -->
-      <section class="admin-section" id="section-forms">
+      <section class="admin-section" id="section-my-submissions">
         <div class="admin-panel">
           <div class="admin-panel-head">
             <div class="admin-toolbar">
@@ -160,40 +291,15 @@
                 <input type="text" id="formsSearch" placeholder="Search by form type or reference…" autocomplete="off">
               </div>
             </div>
-            <select class="admin-select" id="formsTypeFilter">
-              <option value="">All form types</option>
-            </select>
+            <select class="admin-select" id="formsTypeFilter"><option value="">All form types</option></select>
           </div>
           <div class="admin-panel-body">
             <div class="admin-table-wrap">
               <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Form type</th>
-                    <th>Reference</th>
-                    <th>Submitted</th>
-                    <th>Fields captured</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="formsBody">
-                  <tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⏳</div>Loading submissions…</div></td></tr>
-                </tbody>
+                <thead><tr><th>Form type</th><th>Reference</th><th>Submitted</th><th>Fields</th><th></th></tr></thead>
+                <tbody id="formsBody"><tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⏳</div>Loading…</div></td></tr></tbody>
               </table>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══ FORMS TOOLKIT (embedded) ══ -->
-      <section class="admin-section" id="section-toolkit">
-        <div class="admin-panel">
-          <div class="admin-panel-head">
-            <h3>Internal forms toolkit</h3>
-            <a class="btn-tiny primary" href="everyday-advocates-lessons_learned_forms.html" target="_blank" rel="noopener">Open in new tab</a>
-          </div>
-          <div class="admin-panel-body" style="padding:0;">
-            <iframe src="everyday-advocates-lessons_learned_forms.html" title="Forms toolkit" style="width:100%;height:80vh;border:0;display:block;"></iframe>
           </div>
         </div>
       </section>
@@ -203,45 +309,26 @@
         <div class="admin-panel" style="max-width:560px;">
           <div class="admin-panel-head"><h3>Your profile</h3></div>
           <div class="admin-panel-body" style="padding:22px 24px;">
-            <div class="field-group" style="margin-bottom:16px;">
-              <label for="settingsName">Display name</label>
-              <input type="text" id="settingsName" placeholder="Your name">
-            </div>
-            <div class="field-group" style="margin-bottom:20px;">
-              <label>Email address</label>
-              <input type="email" id="settingsEmail" disabled style="opacity:0.6;cursor:not-allowed;">
-            </div>
-            <button class="btn btn-primary" id="saveProfileBtn" style="width:auto;">
-              <span class="btn-text">Save changes</span>
-              <span class="btn-loading" style="display:none;">Saving…</span>
-            </button>
+            <div class="field-group" style="margin-bottom:16px;"><label for="settingsName">Display name</label><input type="text" id="settingsName" placeholder="Your name"></div>
+            <div class="field-group" style="margin-bottom:20px;"><label>Email address</label><input type="email" id="settingsEmail" disabled style="opacity:.6;cursor:not-allowed;"></div>
+            <button class="btn btn-primary" id="saveProfileBtn" style="width:auto;"><span class="btn-text">Save changes</span><span class="btn-loading" style="display:none;">Saving…</span></button>
           </div>
         </div>
-
         <div class="admin-panel" style="max-width:560px;margin-top:24px;">
           <div class="admin-panel-head"><h3>Change password</h3></div>
           <div class="admin-panel-body" style="padding:22px 24px;">
-            <div class="field-group" style="margin-bottom:16px;">
-              <label for="newPassword">New password</label>
-              <input type="password" id="newPassword" minlength="6" placeholder="At least 6 characters">
-            </div>
-            <div class="field-group" style="margin-bottom:20px;">
-              <label for="confirmPassword">Confirm new password</label>
-              <input type="password" id="confirmPassword" placeholder="Repeat new password">
-            </div>
-            <button class="btn btn-primary" id="changePasswordBtn" style="width:auto;">
-              <span class="btn-text">Update password</span>
-              <span class="btn-loading" style="display:none;">Updating…</span>
-            </button>
+            <div class="field-group" style="margin-bottom:16px;"><label for="newPassword">New password</label><input type="password" id="newPassword" minlength="6" placeholder="At least 6 characters"></div>
+            <div class="field-group" style="margin-bottom:20px;"><label for="confirmPassword">Confirm new password</label><input type="password" id="confirmPassword" placeholder="Repeat new password"></div>
+            <button class="btn btn-primary" id="changePasswordBtn" style="width:auto;"><span class="btn-text">Update password</span><span class="btn-loading" style="display:none;">Updating…</span></button>
           </div>
         </div>
       </section>
 
-    </div><!-- /.admin-content -->
+    </div>
   </main>
-</div><!-- /.admin-shell -->
+</div>
 
-<!-- ── FORM SUBMISSION DETAIL DRAWER ── -->
+<!-- Form detail drawer -->
 <div class="admin-overlay" id="drawerOverlay"></div>
 <div class="admin-drawer" id="formDrawer" role="dialog" aria-modal="true" aria-labelledby="formDrawerTitle">
   <div class="admin-drawer-head">
@@ -251,21 +338,31 @@
   <div class="admin-drawer-body" id="formDrawerBody"></div>
 </div>
 
-<!-- ── TOAST ── -->
 <div class="admin-toast" id="adminToast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script>
-/* ════════════════════════════════════════════════════════════
-   EVERYDAY ADVOCATES — STAFF DASHBOARD SCRIPT
-   Sections: Overview · My Submissions · Forms Toolkit · Settings
-   Auth: reads session from Supabase, checks staff.status === 'active'
-   Admins are redirected to admin-dashboard.html.
-   Requires: supabase-config.js (window.supabaseClient)
-════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+
+  /* ── Constants ── */
+  const SESSION_TIMEOUT_MS   = 60 * 60 * 1000; // 60 minutes
+  const SESSION_WARNING_MS   = 55 * 60 * 1000; // warn at 55 min
+  const VIDEOS_KEY   = 'ea-staff-videos';
+  const MANUALS_KEY  = 'ea-staff-manuals';
+
+  const FORMS_LIST = [
+    { ref:'EA-ENQ-001', title:'Enquiry Form',         icon:'📝', desc:'New client enquiry capture' },
+    { ref:'EA-CON-001', title:'Consultation Notes',   icon:'💬', desc:'Record of consultation session' },
+    { ref:'EA-CPF-001', title:'Client Profile',       icon:'👤', desc:'Client background & preferences' },
+    { ref:'EA-SES-001', title:'Session Summary',      icon:'📄', desc:'Post-visit session summary' },
+    { ref:'EA-INC-001', title:'Incident Log',         icon:'⚠️', desc:'Incident reporting form' },
+    { ref:'EA-TS-001',  title:'Timesheet',            icon:'🕐', desc:'Weekly timesheet & hours log' },
+    { ref:'EA-SA-001',  title:'Service Agreement',    icon:'✍️', desc:'Client service agreement' },
+    { ref:'EA-FB-001',  title:'Feedback Form',        icon:'⭐', desc:'Client feedback capture' },
+    { ref:'EA-LL-001',  title:'Lessons Learned Log',  icon:'📚', desc:'Team learning log' },
+  ];
 
   /* ── State ── */
   let currentUser = null;
@@ -273,10 +370,13 @@
   let allForms = [];
   let formsSearch = '';
   let formsTypeFilter = '';
+  let videos = [];
+  let manuals = [];
+  let sessionWarningTimer, sessionSignoutTimer;
 
-  /* ── Helpers ── */
   const $ = (id) => document.getElementById(id);
 
+  /* ── Toast ── */
   function showToast(msg, type) {
     const t = $('adminToast');
     t.textContent = msg;
@@ -285,140 +385,118 @@
     showToast._t = setTimeout(() => t.classList.remove('visible'), 3800);
   }
 
-  function fmt(dateStr) {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  }
-
-  function fmtFull(dateStr) {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-
-  function esc(str) {
-    if (!str && str !== 0) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
-  }
-
-  function initials(name) {
-    if (!name) return '?';
-    return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  }
-
-  function badgeHtml(role) {
-    const map = { admin: 'badge-admin', staff: 'badge-staff' };
-    const cls = map[role] || '';
-    return `<span class="badge ${cls}">${esc(role || '—')}</span>`;
-  }
+  /* ── Helpers ── */
+  function fmt(d)     { return d ? new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
+  function fmtFull(d) { return d ? new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'; }
+  function esc(s)     { if(!s && s!==0) return ''; const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
+  function initials(n){ return n ? n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?'; }
 
   /* ── Theme ── */
   const root = document.documentElement;
   const themeToggle = $('themeToggle');
   const THEME_KEY = 'ea-theme';
-  function applyTheme(theme) {
-    root.setAttribute('data-theme', theme);
-    if (themeToggle) themeToggle.setAttribute('aria-pressed', theme === 'dark');
-  }
-  const savedTheme = localStorage.getItem(THEME_KEY);
-  if (savedTheme) applyTheme(savedTheme);
+  function applyTheme(t) { root.setAttribute('data-theme',t); if(themeToggle) themeToggle.setAttribute('aria-pressed',t==='dark'); }
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved) applyTheme(saved);
   else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme('dark');
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      applyTheme(next);
-      localStorage.setItem(THEME_KEY, next);
-    });
+  if (themeToggle) themeToggle.addEventListener('click', () => {
+    const n = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+    applyTheme(n); localStorage.setItem(THEME_KEY, n);
+  });
+
+  /* ── Session timeout (SP requirement: 60 min) ── */
+  function resetSessionTimer() {
+    clearTimeout(sessionWarningTimer);
+    clearTimeout(sessionSignoutTimer);
+    $('timeoutNotice').style.display = 'none';
+
+    sessionWarningTimer = setTimeout(() => {
+      $('timeoutNotice').style.display = 'block';
+    }, SESSION_WARNING_MS);
+
+    sessionSignoutTimer = setTimeout(async () => {
+      await window.supabaseClient?.auth.signOut();
+      window.location.href = 'admin-login.html';
+    }, SESSION_TIMEOUT_MS);
   }
 
-  /* ── Sidebar nav ── */
-  const SECTION_TITLES = { overview: 'Overview', forms: 'My Submissions', toolkit: 'Forms Toolkit', settings: 'Settings' };
+  $('staySignedIn')?.addEventListener('click', () => {
+    resetSessionTimer();
+    $('timeoutNotice').style.display = 'none';
+  });
 
-  document.querySelectorAll('[data-section]').forEach((btn) => {
+  ['click','keydown','mousemove','touchstart'].forEach(ev =>
+    document.addEventListener(ev, resetSessionTimer, { passive: true })
+  );
+
+  /* ── Navigation ── */
+  const TITLES = { overview:'Overview','forms-toolkit':'Forms & Documents', videos:'Training Videos', manuals:'Manuals & Guides','my-submissions':'My Submissions', settings:'Settings' };
+
+  document.querySelectorAll('[data-section]').forEach(btn => {
     btn.addEventListener('click', () => showSection(btn.dataset.section));
   });
 
   function showSection(name) {
-    document.querySelectorAll('.admin-section').forEach((s) => s.classList.remove('active'));
-    document.querySelectorAll('.admin-nav-link[data-section]').forEach((b) => b.classList.toggle('active', b.dataset.section === name));
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.admin-nav-link[data-section]').forEach(b => b.classList.toggle('active', b.dataset.section === name));
     const sec = $('section-' + name);
     if (sec) sec.classList.add('active');
-    $('topbarTitle').textContent = SECTION_TITLES[name] || name;
+    $('topbarTitle').textContent = TITLES[name] || name;
     closeSidebar();
   }
 
+  /* ── Tab bars ── */
+  document.querySelectorAll('.tab-bar').forEach(bar => {
+    bar.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        bar.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+        const pane = bar.closest('.admin-panel');
+        pane.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === tabId));
+      });
+    });
+  });
+
   /* ── Mobile sidebar ── */
-  const menuBtn = $('menuBtn');
-  const sidebar = $('adminSidebar');
-  const sidebarOverlay = $('sidebarOverlay');
+  const sidebar = $('adminSidebar'), sidebarOverlay = $('sidebarOverlay');
   function openSidebar()  { sidebar.classList.add('open'); sidebarOverlay.classList.add('visible'); }
   function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('visible'); }
-  if (menuBtn) menuBtn.addEventListener('click', openSidebar);
-  if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+  $('menuBtn')?.addEventListener('click', openSidebar);
+  sidebarOverlay?.addEventListener('click', closeSidebar);
 
   /* ── Drawer ── */
-  const drawerOverlay = $('drawerOverlay');
-  const formDrawer    = $('formDrawer');
-
-  function openDrawer(which) {
-    drawerOverlay.classList.add('visible');
-    which.classList.add('visible');
-  }
-  function closeAllDrawers() {
-    drawerOverlay.classList.remove('visible');
-    formDrawer.classList.remove('visible');
-  }
+  const drawerOverlay = $('drawerOverlay'), formDrawer = $('formDrawer');
+  function openDrawer(d) { drawerOverlay.classList.add('visible'); d.classList.add('visible'); }
+  function closeAllDrawers() { drawerOverlay.classList.remove('visible'); formDrawer.classList.remove('visible'); }
   drawerOverlay.addEventListener('click', closeAllDrawers);
   $('formDrawerClose').addEventListener('click', closeAllDrawers);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllDrawers(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeAllDrawers(); });
 
   /* ════════════════════════════════════════════════
-     AUTH CHECK
+     AUTH
   ════════════════════════════════════════════════ */
   async function init() {
     const sb = window.supabaseClient;
-    if (!sb) {
-      $('authGate').innerHTML = '<div class="admin-gate-card"><div class="admin-gate-icon">⚠️</div><h2>Supabase not configured</h2><p>Open <code>supabase-config.js</code> and add your Project URL and anon key.</p><a href="admin-login.html" class="btn btn-primary" style="display:inline-flex;justify-content:center;">Back to sign in</a></div>';
-      return;
-    }
+    if (!sb) { showDenied('Supabase not configured. Please set up supabase-config.js.'); return; }
 
     const { data } = await sb.auth.getSession();
-    if (!data.session) {
-      window.location.href = 'admin-login.html';
-      return;
-    }
-
+    if (!data.session) { window.location.href = 'admin-login.html'; return; }
     currentUser = data.session.user;
 
-    // Fetch staff row
-    const { data: staffRow, error } = await sb
-      .from('staff')
-      .select('id, full_name, role, status, email, created_at')
-      .eq('id', currentUser.id)
-      .maybeSingle();
+    const { data: staffRow, error } = await sb.from('staff')
+      .select('id,full_name,role,status,email,created_at')
+      .eq('id', currentUser.id).maybeSingle();
 
-    if (error || !staffRow) {
-      showDenied('We couldn\'t find a staff record for your account. Please contact an admin.');
-      return;
-    }
-
+    if (error || !staffRow) { showDenied('No staff record found. Please contact an admin.'); return; }
     if (staffRow.status !== 'active') {
-      const msgs = { pending: 'Your account is awaiting admin approval.', suspended: 'Your account has been suspended. Contact an admin.' };
-      showDenied(msgs[staffRow.status] || 'Access restricted.');
-      return;
+      const msgs = { pending:'Your account is awaiting approval.', suspended:'Your account has been suspended.' };
+      showDenied(msgs[staffRow.status] || 'Access restricted.'); return;
     }
-
-    // Admins use the admin dashboard instead
-    if (staffRow.role === 'admin') {
-      window.location.href = 'admin-dashboard.html';
-      return;
-    }
+    if (staffRow.role === 'admin') { window.location.href = 'admin-dashboard.html'; return; }
 
     currentStaffRow = staffRow;
-    bootDashboard();
+    resetSessionTimer();
+    boot();
   }
 
   function showDenied(msg) {
@@ -427,212 +505,296 @@
     $('accessDenied').style.display = 'flex';
   }
 
-  async function bootDashboard() {
-    // Hide gate, show shell
+  async function boot() {
     $('authGate').style.display = 'none';
     $('dashShell').style.display = 'grid';
-
-    // Populate user info in sidebar
-    $('userName').textContent = currentStaffRow.full_name || currentUser.email;
-    $('userRole').innerHTML = badgeHtml(currentStaffRow.role || 'staff');
+    $('userName').textContent  = currentStaffRow.full_name || currentUser.email;
+    $('userRole').innerHTML    = '<span class="badge badge-staff">staff</span>';
     $('userAvatar').textContent = initials(currentStaffRow.full_name || currentUser.email);
+    $('settingsName').value    = currentStaffRow.full_name || '';
+    $('settingsEmail').value   = currentUser.email || '';
 
-    // Pre-fill settings
-    $('settingsName').value  = currentStaffRow.full_name || '';
-    $('settingsEmail').value = currentUser.email || '';
-
-    // Load data
-    await loadForms();
+    loadVideos();
+    loadManuals();
+    renderForms();
+    await loadMySubmissions();
     renderOverview();
   }
 
-  /* ── Sign out ── */
   $('signOutBtn').addEventListener('click', async () => {
     await window.supabaseClient.auth.signOut();
     window.location.href = 'admin-login.html';
   });
 
   /* ════════════════════════════════════════════════
-     DATA LOADER — own submissions only
-     (RLS on form_submissions restricts SELECT to rows
-      where submitted_by = auth.uid() for non-admins)
+     FORMS & DOCUMENTS (SP-03, SP-06)
   ════════════════════════════════════════════════ */
-  async function loadForms() {
-    const { data, error } = await window.supabaseClient
-      .from('form_submissions')
-      .select('*')
-      .eq('submitted_by', currentUser.id)
-      .order('created_at', { ascending: false });
+  function renderForms() {
+    const grid = $('formsGrid');
+    grid.innerHTML = FORMS_LIST.map(f => `
+      <div class="resource-card">
+        <span class="resource-icon">${f.icon}</span>
+        <div class="resource-info">
+          <div class="resource-title">${esc(f.title)}</div>
+          <div class="resource-meta">${esc(f.ref)} · ${esc(f.desc)}</div>
+          <div class="resource-actions">
+            <a class="btn-tiny primary" href="everyday-advocates-lessons_learned_forms.html#${f.ref}" target="_blank">Open form</a>
+          </div>
+        </div>
+      </div>`).join('');
+  }
 
+  /* ════════════════════════════════════════════════
+     TRAINING VIDEOS (SP-04, SP-08)
+     Stored in localStorage so admin can manage without developer
+  ════════════════════════════════════════════════ */
+  function loadVideos() {
+    try { videos = JSON.parse(localStorage.getItem(VIDEOS_KEY) || '[]'); } catch(e) { videos = []; }
+    renderVideos();
+  }
+
+  function saveVideos() { localStorage.setItem(VIDEOS_KEY, JSON.stringify(videos)); }
+
+  function videoEmbedUrl(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
+        const vid = u.searchParams.get('v') || u.pathname.split('/').pop();
+        return `https://www.youtube.com/embed/${vid}`;
+      }
+      if (u.hostname.includes('vimeo.com')) {
+        const vid = u.pathname.split('/').pop();
+        return `https://player.vimeo.com/video/${vid}`;
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  function renderVideos(filter='') {
+    const grid = $('videosGrid');
+    const list = filter ? videos.filter(v => (v.title+v.category+v.desc).toLowerCase().includes(filter.toLowerCase())) : videos;
+    if (!list.length) {
+      grid.innerHTML = `<div class="empty-resources"><div class="empty-icon">🎬</div><p>${filter ? 'No videos match your search.' : 'No training videos yet.'}</p><p style="font-size:.8rem;">${!filter ? 'Use the "Add video" tab to add your first video.' : ''}</p></div>`;
+      return;
+    }
+    grid.innerHTML = list.map((v,i) => {
+      const embed = videoEmbedUrl(v.url);
+      return `<div class="resource-card video-card">
+        <div class="video-thumb">
+          ${embed ? `<iframe src="${esc(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="${esc(v.title)}"></iframe>`
+                 : `<div class="video-thumb-placeholder">🔗<span>External link</span></div>`}
+        </div>
+        <div class="resource-info">
+          <div class="resource-title">${esc(v.title)}</div>
+          <div class="resource-meta">${esc(v.category)}${v.desc ? ' · '+esc(v.desc) : ''}</div>
+          <div class="resource-actions">
+            <a class="btn-tiny primary" href="${esc(v.url)}" target="_blank" rel="noopener">Watch</a>
+            <button class="btn-tiny" onclick="window._deleteVideo(${i})">Remove</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window._deleteVideo = (i) => {
+    if (!confirm('Remove this video?')) return;
+    videos.splice(i,1); saveVideos(); renderVideos($('videoSearch').value);
+    showToast('Video removed.', 'success');
+  };
+
+  $('videoSearch').addEventListener('input', e => renderVideos(e.target.value));
+
+  $('addVideoBtn').addEventListener('click', () => {
+    const title = $('videoTitle').value.trim();
+    const url   = $('videoUrl').value.trim();
+    const cat   = $('videoCategory').value;
+    const desc  = $('videoDesc').value.trim();
+    if (!title) { showToast('Please enter a title.', 'error'); return; }
+    if (!url)   { showToast('Please paste a video URL.', 'error'); return; }
+    try { new URL(url); } catch(e) { showToast('Please enter a valid URL.', 'error'); return; }
+    videos.push({ title, url, category: cat, desc, added: new Date().toISOString() });
+    saveVideos(); renderVideos();
+    $('videoTitle').value = ''; $('videoUrl').value = ''; $('videoDesc').value = '';
+    showToast('Video added.', 'success');
+    // Switch back to browse tab
+    document.querySelector('#section-videos .tab-btn[data-tab="videos-browse"]').click();
+  });
+
+  /* ════════════════════════════════════════════════
+     MANUALS & GUIDES (SP-05, SP-08)
+  ════════════════════════════════════════════════ */
+  function loadManuals() {
+    try { manuals = JSON.parse(localStorage.getItem(MANUALS_KEY) || '[]'); } catch(e) { manuals = []; }
+    // Seed with placeholder upcoming items
+    if (!manuals.length) {
+      manuals = [
+        { title:'Staff Service Manual', url:'', category:'General', desc:'Main staff handbook — PDF to be uploaded by admin', placeholder:true },
+        { title:'Safeguarding Guide', url:'', category:'Safeguarding', desc:'Safeguarding protocols and procedures', placeholder:true },
+        { title:'Service Boundaries Document', url:'', category:'Service Boundaries', desc:'What Everyday Advocates does and does not provide', placeholder:true },
+      ];
+    }
+    renderManuals();
+  }
+
+  function saveManuals() { localStorage.setItem(MANUALS_KEY, JSON.stringify(manuals)); }
+
+  function renderManuals(filter='') {
+    const grid = $('manualsGrid');
+    const list = filter ? manuals.filter(m => (m.title+m.category+m.desc).toLowerCase().includes(filter.toLowerCase())) : manuals;
+    if (!list.length) {
+      grid.innerHTML = `<div class="empty-resources"><div class="empty-icon">📚</div><p>${filter ? 'No documents match your search.' : 'No manuals uploaded yet.'}</p></div>`;
+      return;
+    }
+    grid.innerHTML = list.map((m,i) => `
+      <div class="resource-card" style="${m.placeholder ? 'opacity:.6;' : ''}">
+        <span class="resource-icon">📄</span>
+        <div class="resource-info">
+          <div class="resource-title">${esc(m.title)}</div>
+          <div class="resource-meta">${esc(m.category)}${m.desc ? ' · '+esc(m.desc) : ''}</div>
+          <div class="resource-actions">
+            ${m.url && !m.placeholder
+              ? `<a class="btn-tiny primary" href="${esc(m.url)}" target="_blank" rel="noopener">Download PDF</a>`
+              : `<span style="font-size:.75rem;color:var(--text-muted);font-style:italic;">Coming soon</span>`}
+            ${!m.placeholder ? `<button class="btn-tiny" onclick="window._deleteManual(${i})">Remove</button>` : ''}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  window._deleteManual = (i) => {
+    if (!confirm('Remove this document?')) return;
+    manuals.splice(i,1); saveManuals(); renderManuals($('manualSearch').value);
+    showToast('Document removed.', 'success');
+  };
+
+  $('manualSearch').addEventListener('input', e => renderManuals(e.target.value));
+
+  $('addManualBtn').addEventListener('click', () => {
+    const title = $('manualTitle').value.trim();
+    const url   = $('manualUrl').value.trim();
+    const cat   = $('manualCategory').value;
+    const desc  = $('manualDesc').value.trim();
+    if (!title) { showToast('Please enter a title.', 'error'); return; }
+    if (!url)   { showToast('Please paste a document link.', 'error'); return; }
+    try { new URL(url); } catch(e) { showToast('Please enter a valid URL.', 'error'); return; }
+    manuals.push({ title, url, category: cat, desc, added: new Date().toISOString(), placeholder: false });
+    saveManuals(); renderManuals();
+    $('manualTitle').value = ''; $('manualUrl').value = ''; $('manualDesc').value = '';
+    showToast('Document added.', 'success');
+    document.querySelector('#section-manuals .tab-btn[data-tab="manuals-browse"]').click();
+  });
+
+  /* ════════════════════════════════════════════════
+     MY SUBMISSIONS
+  ════════════════════════════════════════════════ */
+  async function loadMySubmissions() {
+    const { data, error } = await window.supabaseClient
+      .from('form_submissions').select('*')
+      .eq('submitted_by', currentUser.id).order('created_at', { ascending: false });
     if (!error) {
       allForms = data || [];
-      // Populate type filter
-      const types = [...new Set(allForms.map((f) => f.form_type).filter(Boolean))];
+      const types = [...new Set(allForms.map(f => f.form_type).filter(Boolean))];
       const sel = $('formsTypeFilter');
       sel.innerHTML = '<option value="">All form types</option>';
-      types.forEach((t) => {
-        const opt = document.createElement('option');
-        opt.value = t; opt.textContent = t;
-        sel.appendChild(opt);
-      });
-      renderForms();
-    } else {
-      $('formsBody').innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⚠️</div>Couldn\u2019t load submissions.</div></td></tr>';
+      types.forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+      renderMySubmissions();
     }
   }
+
+  function filteredForms() {
+    return allForms.filter(f => {
+      const matchType = !formsTypeFilter || f.form_type === formsTypeFilter;
+      const q = formsSearch.toLowerCase();
+      const matchSearch = !q || (f.form_type||'').toLowerCase().includes(q) || (f.form_ref||'').toLowerCase().includes(q);
+      return matchType && matchSearch;
+    });
+  }
+
+  function renderMySubmissions() {
+    const list = filteredForms();
+    const tbody = $('formsBody');
+    if (!list.length) { tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div>No submissions match this filter.</div></td></tr>'; return; }
+    tbody.innerHTML = list.map(f => {
+      const fc = f.data ? Object.keys(f.data).length : 0;
+      return `<tr>
+        <td><strong>${esc(f.form_type)}</strong></td>
+        <td class="cell-muted">${esc(f.form_ref||'—')}</td>
+        <td class="cell-muted">${fmtFull(f.created_at)}</td>
+        <td class="cell-muted">${fc} field${fc!==1?'s':''}</td>
+        <td><button class="btn-tiny" onclick="window._openForm('${esc(f.id)}')">View</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  window._openForm = (id) => {
+    const f = allForms.find(x => x.id === id); if(!f) return;
+    $('formDrawerTitle').textContent = f.form_type || 'Form submission';
+    let html = `<div class="detail-row"><div class="dr-label">Reference</div><div class="dr-value">${esc(f.form_ref)}</div></div>`;
+    html += `<div class="detail-row"><div class="dr-label">Submitted</div><div class="dr-value">${fmtFull(f.created_at)}</div></div>`;
+    if (f.data && typeof f.data === 'object') {
+      Object.entries(f.data).forEach(([key,val]) => {
+        let display;
+        if (Array.isArray(val)) display = val.length ? val.map(v => typeof v==='object'?JSON.stringify(v,null,2):esc(v)).join(', ') : '—';
+        else if (typeof val==='object'&&val!==null) display = `<pre style="font-size:.8rem;white-space:pre-wrap;word-break:break-word;">${esc(JSON.stringify(val,null,2))}</pre>`;
+        else display = esc(val!==null&&val!==undefined&&val!==''?val:'—');
+        html += `<div class="detail-row"><div class="dr-label">${esc(key)}</div><div class="dr-value">${display}</div></div>`;
+      });
+    }
+    $('formDrawerBody').innerHTML = html;
+    openDrawer(formDrawer);
+  };
+
+  $('formsSearch').addEventListener('input', e => { formsSearch = e.target.value; renderMySubmissions(); });
+  $('formsTypeFilter').addEventListener('change', e => { formsTypeFilter = e.target.value; renderMySubmissions(); });
 
   /* ════════════════════════════════════════════════
      OVERVIEW
   ════════════════════════════════════════════════ */
   function renderOverview() {
     $('statTotal').textContent = allForms.length;
-
     const now = new Date();
-    const thisMonth = allForms.filter((f) => {
-      const d = new Date(f.created_at);
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    }).length;
+    const thisMonth = allForms.filter(f => { const d=new Date(f.created_at); return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth(); }).length;
     $('statThisMonth').textContent = thisMonth;
-
     $('statLast').textContent = allForms.length ? fmt(allForms[0].created_at) : '—';
-
     const tbody = $('recentFormsBody');
-    const recent = allForms.slice(0, 5);
-    if (!recent.length) {
-      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📭</div>You haven\u2019t submitted any forms yet.</div></td></tr>';
-    } else {
-      tbody.innerHTML = recent.map((f) => `
-        <tr>
-          <td><strong>${esc(f.form_type)}</strong></td>
-          <td class="cell-muted">${esc(f.form_ref || '—')}</td>
-          <td class="cell-muted">${fmt(f.created_at)}</td>
-          <td><button class="btn-tiny" onclick="window._openForm('${esc(f.id)}')">View</button></td>
-        </tr>`).join('');
-    }
+    const recent = allForms.slice(0,5);
+    if (!recent.length) { tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📭</div>No submissions yet.</div></td></tr>'; return; }
+    tbody.innerHTML = recent.map(f => `<tr>
+      <td><strong>${esc(f.form_type)}</strong></td>
+      <td class="cell-muted">${esc(f.form_ref||'—')}</td>
+      <td class="cell-muted">${fmt(f.created_at)}</td>
+      <td><button class="btn-tiny" onclick="window._openForm('${esc(f.id)}')">View</button></td>
+    </tr>`).join('');
   }
-
-  /* ════════════════════════════════════════════════
-     MY SUBMISSIONS
-  ════════════════════════════════════════════════ */
-  function filteredForms() {
-    return allForms.filter((f) => {
-      const matchType = !formsTypeFilter || f.form_type === formsTypeFilter;
-      const q = formsSearch.toLowerCase();
-      const matchSearch = !q || (f.form_type || '').toLowerCase().includes(q) || (f.form_ref || '').toLowerCase().includes(q);
-      return matchType && matchSearch;
-    });
-  }
-
-  function renderForms() {
-    const list = filteredForms();
-    const tbody = $('formsBody');
-    if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div>No submissions match this filter.</div></td></tr>';
-      return;
-    }
-    tbody.innerHTML = list.map((f) => {
-      const fieldCount = f.data ? Object.keys(f.data).length : 0;
-      return `
-        <tr>
-          <td><strong>${esc(f.form_type)}</strong></td>
-          <td class="cell-muted">${esc(f.form_ref || '—')}</td>
-          <td class="cell-muted">${fmtFull(f.created_at)}</td>
-          <td class="cell-muted">${fieldCount} field${fieldCount !== 1 ? 's' : ''}</td>
-          <td><button class="btn-tiny" onclick="window._openForm('${esc(f.id)}')">View</button></td>
-        </tr>`;
-    }).join('');
-  }
-
-  window._openForm = (id) => {
-    const f = allForms.find((x) => x.id === id);
-    if (!f) return;
-    $('formDrawerTitle').textContent = f.form_type || 'Form submission';
-
-    let html = `<div class="detail-row"><div class="dr-label">Reference</div><div class="dr-value">${esc(f.form_ref)}</div></div>`;
-    html += `<div class="detail-row"><div class="dr-label">Submitted</div><div class="dr-value">${fmtFull(f.created_at)}</div></div>`;
-
-    if (f.data && typeof f.data === 'object') {
-      Object.entries(f.data).forEach(([key, val]) => {
-        let display;
-        if (Array.isArray(val)) {
-          display = val.length ? val.map((v) => typeof v === 'object' ? JSON.stringify(v, null, 2) : esc(v)).join(', ') : '—';
-        } else if (typeof val === 'object' && val !== null) {
-          display = `<pre style="font-size:0.8rem;white-space:pre-wrap;word-break:break-word;">${esc(JSON.stringify(val, null, 2))}</pre>`;
-        } else {
-          display = esc(val !== null && val !== undefined && val !== '' ? val : '—');
-        }
-        html += `<div class="detail-row"><div class="dr-label">${esc(key)}</div><div class="dr-value">${display}</div></div>`;
-      });
-    }
-
-    $('formDrawerBody').innerHTML = html;
-    openDrawer(formDrawer);
-  };
-
-  $('formsSearch').addEventListener('input', (e) => {
-    formsSearch = e.target.value;
-    renderForms();
-  });
-
-  $('formsTypeFilter').addEventListener('change', (e) => {
-    formsTypeFilter = e.target.value;
-    renderForms();
-  });
 
   /* ════════════════════════════════════════════════
      SETTINGS
   ════════════════════════════════════════════════ */
   $('saveProfileBtn').addEventListener('click', async () => {
     const btn = $('saveProfileBtn');
-    btn.disabled = true;
-    btn.querySelector('.btn-text').style.display = 'none';
-    btn.querySelector('.btn-loading').style.display = 'inline';
-
+    btn.disabled=true; btn.querySelector('.btn-text').style.display='none'; btn.querySelector('.btn-loading').style.display='inline';
     const newName = $('settingsName').value.trim();
-    const { error } = await window.supabaseClient
-      .from('staff')
-      .update({ full_name: newName })
-      .eq('id', currentUser.id);
-
-    if (error) { showToast('Failed to save changes.', 'error'); }
-    else {
-      currentStaffRow.full_name = newName;
-      $('userName').textContent  = newName || currentUser.email;
-      $('userAvatar').textContent = initials(newName || currentUser.email);
-      showToast('Profile updated.', 'success');
-    }
-    btn.disabled = false;
-    btn.querySelector('.btn-text').style.display = 'inline';
-    btn.querySelector('.btn-loading').style.display = 'none';
+    const { error } = await window.supabaseClient.from('staff').update({full_name:newName}).eq('id',currentUser.id);
+    if (error) showToast('Failed to save.','error');
+    else { currentStaffRow.full_name=newName; $('userName').textContent=newName||currentUser.email; $('userAvatar').textContent=initials(newName||currentUser.email); showToast('Profile updated.','success'); }
+    btn.disabled=false; btn.querySelector('.btn-text').style.display='inline'; btn.querySelector('.btn-loading').style.display='none';
   });
 
   $('changePasswordBtn').addEventListener('click', async () => {
-    const pw  = $('newPassword').value;
-    const cpw = $('confirmPassword').value;
-    if (!pw) { showToast('Enter a new password.', 'error'); return; }
-    if (pw !== cpw) { showToast('Passwords don\'t match.', 'error'); return; }
-    if (pw.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
-
-    const btn = $('changePasswordBtn');
-    btn.disabled = true;
-    btn.querySelector('.btn-text').style.display = 'none';
-    btn.querySelector('.btn-loading').style.display = 'inline';
-
-    const { error } = await window.supabaseClient.auth.updateUser({ password: pw });
-    if (error) { showToast(error.message || 'Failed to update password.', 'error'); }
-    else {
-      $('newPassword').value = '';
-      $('confirmPassword').value = '';
-      showToast('Password updated.', 'success');
-    }
-    btn.disabled = false;
-    btn.querySelector('.btn-text').style.display = 'inline';
-    btn.querySelector('.btn-loading').style.display = 'none';
+    const pw=$('newPassword').value, cpw=$('confirmPassword').value;
+    if (!pw) { showToast('Enter a new password.','error'); return; }
+    if (pw!==cpw) { showToast('Passwords don\'t match.','error'); return; }
+    if (pw.length<6) { showToast('Password must be at least 6 characters.','error'); return; }
+    const btn=$('changePasswordBtn');
+    btn.disabled=true; btn.querySelector('.btn-text').style.display='none'; btn.querySelector('.btn-loading').style.display='inline';
+    const {error} = await window.supabaseClient.auth.updateUser({password:pw});
+    if (error) showToast(error.message||'Failed to update password.','error');
+    else { $('newPassword').value=''; $('confirmPassword').value=''; showToast('Password updated.','success'); }
+    btn.disabled=false; btn.querySelector('.btn-text').style.display='inline'; btn.querySelector('.btn-loading').style.display='none';
   });
 
   /* ── Boot ── */
   init();
-
 })();
 </script>
 </body>
