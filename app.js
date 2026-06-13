@@ -68,7 +68,8 @@
     services: 'Our Services | Everyday Advocates',
     'how-it-works': 'How It Works | Everyday Advocates',
     faqs: 'FAQs | Everyday Advocates',
-    contact: 'Contact Us | Everyday Advocates'
+    contact: 'Contact Us | Everyday Advocates',
+    privacy: 'Privacy Policy | Everyday Advocates'
   };
 
   function showPage(name, opts = {}) {
@@ -231,3 +232,34 @@
   }
 
 })();
+
+  /* ── 8. COOKIE CONSENT BANNER ── */
+  const cookieBanner  = document.getElementById('cookieBanner');
+  const cookieAccept  = document.getElementById('cookieAccept');
+  const cookieDecline = document.getElementById('cookieDecline');
+  const COOKIE_KEY    = 'ea-cookie-consent';
+
+  function hideCookieBanner() {
+    if (cookieBanner) {
+      cookieBanner.classList.remove('visible');
+      setTimeout(() => { cookieBanner.style.display = 'none'; }, 400);
+    }
+  }
+
+  if (cookieBanner && !localStorage.getItem(COOKIE_KEY)) {
+    setTimeout(() => cookieBanner.classList.add('visible'), 1200);
+  }
+
+  if (cookieAccept) {
+    cookieAccept.addEventListener('click', () => {
+      localStorage.setItem(COOKIE_KEY, 'accepted');
+      hideCookieBanner();
+      if (typeof loadGA === 'function') loadGA();
+    });
+  }
+  if (cookieDecline) {
+    cookieDecline.addEventListener('click', () => {
+      localStorage.setItem(COOKIE_KEY, 'declined');
+      hideCookieBanner();
+    });
+  }
