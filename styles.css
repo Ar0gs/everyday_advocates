@@ -336,11 +336,6 @@ p { color: var(--text-body); line-height: 1.75; }
   text-decoration: none;
   flex-shrink: 0;
 }
-.nav-logo img {
-  height: 42px;
-  width: auto;
-  object-fit: contain;
-}
 .logo-mark svg { transition: transform var(--dur-base) var(--ease-spring); }
 .nav-logo:hover .logo-mark svg { transform: rotate(8deg) scale(1.08); }
 
@@ -2573,3 +2568,68 @@ body.nav-locked { overflow: hidden; }
 }
 .privacy-body a { color: var(--teal); text-decoration: underline; }
 .privacy-body a:hover { color: var(--teal-soft); }
+
+/* ══════════════════════════════════════════════════════════
+   WHAT WE DO & DON'T DO PAGE
+══════════════════════════════════════════════════════════ */
+.boundaries-body h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--teal);
+  margin: 40px 0 12px;
+}
+.boundaries-body h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.boundaries-body p {
+  font-size: 0.97rem;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.boundaries-body a { color: var(--teal); text-decoration: underline; }
+.boundaries-body a:hover { color: var(--teal-soft); }
+
+.boundary-block {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  background: var(--bg-surface);
+}
+.boundary-note {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-sm);
+  background: var(--teal-mist);
+  border-left: 3px solid var(--teal);
+}
+.boundary-note-strong {
+  background: rgba(212, 163, 89, 0.10);
+  border-left: 3px solid var(--amber);
+}
+.boundary-note strong {
+  display: block;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.boundary-note p { margin-bottom: 0; font-size: 0.92rem; }
+
+.boundary-list {
+  margin: 0 0 16px;
+  padding-left: 22px;
+}
+.boundary-list li {
+  font-size: 0.97rem;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 8px;
+}
