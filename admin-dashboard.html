@@ -131,6 +131,32 @@
           </div>
         </div>
 
+        <!-- Lone worker check-ins -->
+        <div class="admin-panel" id="visitsPanel">
+          <div class="admin-panel-head">
+            <h3>🛟 Visits in progress</h3>
+            <span class="badge badge-pending" id="overdueBadge" style="display:none;"></span>
+          </div>
+          <div class="admin-panel-body">
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Staff</th>
+                    <th>Address</th>
+                    <th>Started</th>
+                    <th>Expected</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="activeVisitsBody">
+                  <tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⏳</div>Loading…</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Recent enquiries -->
         <div class="admin-panel">
           <div class="admin-panel-head">
@@ -249,6 +275,7 @@
                     <th>Role</th>
                     <th>Joined</th>
                     <th>Status</th>
+                    <th>Boundaries ack.</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -378,6 +405,7 @@
   let currentStaffRow = null;
   let allEnquiries = [];
   let allStaff = [];
+  let allBoundariesAcks = [];
   let allForms = [];
   let enquiryFilter = 'all';
   let enquirySearch = '';
@@ -554,7 +582,7 @@
     $('settingsEmail').value = currentUser.email || '';
 
     // Load all data
-    await Promise.all([loadEnquiries(), loadStaff(), loadForms()]);
+    await Promise.all([loadEnquiries(), loadStaff(), loadForms(), loadBoundariesAcks(), loadActiveVisits()]);
     renderOverview();
   }
 
@@ -581,6 +609,68 @@
       .select('*')
       .order('created_at', { ascending: false });
     if (!error) { allStaff = data || []; renderStaff(); updateStaffBadge(); }
+  }
+
+  async function loadBoundariesAcks() {
+    const { data, error } = await window.supabaseClient
+      .from('boundaries_acknowledgements')
+      .select('*')
+      .order('acknowledged_at', { ascending: false });
+    if (!error) {
+      allBoundariesAcks = data || [];
+      renderStaff();
+    }
+  }
+
+  let activeVisitsTimer = null;
+
+  async function loadActiveVisits() {
+    const { data, error } = await window.supabaseClient
+      .from('visit_checkins')
+      .select('*')
+      .in('status', ['in_progress', 'overdue'])
+      .order('started_at', { ascending: false });
+    if (!error) {
+      renderActiveVisits(data || []);
+      clearInterval(activeVisitsTimer);
+      activeVisitsTimer = setInterval(() => loadActiveVisits(), 30000);
+    }
+  }
+
+  function renderActiveVisits(visits) {
+    const GRACE_MINUTES = 30;
+    const tbody = $('activeVisitsBody');
+    const badge = $('overdueBadge');
+
+    if (!visits.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">✅</div>No visits currently in progress.</div></td></tr>';
+      badge.style.display = 'none';
+      return;
+    }
+
+    let overdueCount = 0;
+    tbody.innerHTML = visits.map((v) => {
+      const started = new Date(v.started_at);
+      const dueBy = new Date(started.getTime() + (v.expected_minutes + GRACE_MINUTES) * 60000);
+      const isOverdue = new Date() > dueBy || v.status === 'overdue';
+      if (isOverdue) overdueCount++;
+      const meta = v.client_ref ? `${esc(v.client_ref)} · ${esc(v.address)}` : esc(v.address);
+      return `
+        <tr${isOverdue ? ' style="background:rgba(181,69,59,.06);"' : ''}>
+          <td><strong>${esc(v.staff_name)}</strong></td>
+          <td class="cell-muted">${meta}</td>
+          <td class="cell-muted">${fmtFull(v.started_at)}</td>
+          <td class="cell-muted">${v.expected_minutes} min</td>
+          <td>${isOverdue ? '<span class="badge badge-suspended">⚠️ Overdue</span>' : '<span class="badge badge-active">In progress</span>'}</td>
+        </tr>`;
+    }).join('');
+
+    if (overdueCount > 0) {
+      badge.textContent = `${overdueCount} overdue`;
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
   }
 
   async function loadForms() {
@@ -796,10 +886,11 @@
     const list = filteredStaff();
     const tbody = $('staffBody');
     if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div>No staff match this filter.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👥</div>No staff match this filter.</div></td></tr>';
       return;
     }
     const isAdmin = currentStaffRow && currentStaffRow.role === 'admin';
+    const REVIEW_MONTHS = 6;
     tbody.innerHTML = list.map((s) => {
       const isSelf = s.id === (currentStaffRow && currentStaffRow.id);
       const actionsHtml = isAdmin && !isSelf ? `
@@ -809,6 +900,22 @@
           ${s.status === 'suspended' ? `<button class="btn-tiny"         onclick="window._approveStaff('${esc(s.id)}')">Reinstate</button>` : ''}
           ${s.role !== 'admin'       ? `<button class="btn-tiny"         onclick="window._makeAdmin('${esc(s.id)}')">Make admin</button>` : ''}
         </div>` : (isSelf ? '<span class="cell-muted" style="font-size:0.78rem;">You</span>' : '—');
+
+      // Boundaries acknowledgement status
+      const acks = allBoundariesAcks.filter((a) => a.staff_id === s.id);
+      let ackHtml;
+      if (!acks.length) {
+        ackHtml = '<span class="badge badge-pending">Not signed</span>';
+      } else {
+        const latest = acks[0]; // already sorted desc
+        const ackDate = new Date(latest.acknowledged_at);
+        const due = new Date(ackDate); due.setMonth(due.getMonth() + REVIEW_MONTHS);
+        const isDue = new Date() >= due;
+        ackHtml = isDue
+          ? `<span class="badge badge-suspended" title="Signed ${fmt(latest.acknowledged_at)}">Review due</span>`
+          : `<span class="badge badge-active" title="Next review ${fmt(due.toISOString())}">Up to date</span>`;
+      }
+
       return `
         <tr>
           <td>
@@ -821,6 +928,7 @@
           <td>${badgeHtml(s.role || 'staff')}</td>
           <td class="cell-muted">${fmt(s.created_at)}</td>
           <td>${badgeHtml(s.status)}</td>
+          <td>${ackHtml}</td>
           <td>${actionsHtml}</td>
         </tr>`;
     }).join('');
