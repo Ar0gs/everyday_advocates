@@ -67,6 +67,7 @@
     about: 'About Us | Everyday Advocates',
     services: 'Our Services | Everyday Advocates',
     'how-it-works': 'How It Works | Everyday Advocates',
+    boundaries: "What We Do & Don't Do | Everyday Advocates",
     faqs: 'FAQs | Everyday Advocates',
     contact: 'Contact Us | Everyday Advocates',
     privacy: 'Privacy Policy | Everyday Advocates'
