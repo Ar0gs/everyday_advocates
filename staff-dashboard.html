@@ -38,6 +38,33 @@
 .empty-resources .empty-icon { font-size:2rem; margin-bottom:10px; }
 .timeout-notice { position:fixed; top:0;left:0;right:0; background:var(--amber); color:#fff; text-align:center; padding:10px 16px; z-index:9999; font-size:.88rem; display:none; }
 .timeout-notice button { margin-left:12px; background:#fff; color:var(--amber); border:none; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:.82rem; font-weight:600; }
+
+/* Service Boundaries acknowledgement */
+.boundaries-banner { padding:14px 18px; border-radius:var(--r-md); margin-bottom:20px; }
+.boundaries-banner strong { display:block; font-size:.9rem; margin-bottom:4px; }
+.boundaries-banner p { margin:0; font-size:.85rem; line-height:1.6; }
+.boundaries-banner-warn { background:rgba(212,163,89,.12); border-left:3px solid var(--amber); color:var(--text); }
+.boundaries-banner-ok { background:rgba(60,150,120,.10); border-left:3px solid var(--teal); color:var(--text); }
+.boundaries-doc { max-width:760px; }
+.boundaries-doc h4 { font-family:var(--font-display); font-size:1.02rem; font-weight:600; color:var(--teal); margin:26px 0 8px; }
+.boundaries-doc h4:first-child { margin-top:0; }
+.boundaries-doc p { font-size:.9rem; line-height:1.7; color:var(--text); margin-bottom:10px; }
+.boundary-note { margin:12px 0; padding:12px 14px; border-radius:var(--r-sm); background:var(--teal-mist); border-left:3px solid var(--teal); }
+.boundary-note-strong { background:rgba(212,163,89,.10); border-left:3px solid var(--amber); }
+.boundary-note strong { display:block; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+.boundary-note p { margin:0; font-size:.85rem; }
+.boundaries-ack-box { margin-top:28px; padding:20px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--bg-surface); max-width:760px; }
+.ack-checkbox { display:flex; align-items:flex-start; gap:10px; font-size:.9rem; line-height:1.5; cursor:pointer; }
+.ack-checkbox input { margin-top:3px; width:18px; height:18px; flex-shrink:0; cursor:pointer; }
+
+/* Lone worker check-in */
+.checkin-panel { border-left:3px solid var(--teal); }
+.checkin-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+.checkin-active-banner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 16px; border-radius:var(--r-md); background:rgba(212,163,89,.10); border-left:3px solid var(--amber); flex-wrap:wrap; }
+.checkin-active-banner.overdue { background:rgba(181,69,59,.10); border-left-color:#B5453B; }
+.checkin-active-banner strong { font-size:.92rem; color:var(--text); }
+.checkin-timer { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--text); white-space:nowrap; }
+.checkin-timer.overdue { color:#B5453B; }
 </style>
 </head>
 <body class="admin-body">
@@ -80,6 +107,7 @@
       <button class="admin-nav-link" data-section="forms-toolkit"><span class="nav-ico">📋</span> Forms &amp; Documents</button>
       <button class="admin-nav-link" data-section="videos"><span class="nav-ico">🎬</span> Training Videos</button>
       <button class="admin-nav-link" data-section="manuals"><span class="nav-ico">📚</span> Manuals &amp; Guides</button>
+      <button class="admin-nav-link" data-section="boundaries"><span class="nav-ico">🛡️</span> Service Boundaries</button>
       <button class="admin-nav-link" data-section="my-submissions"><span class="nav-ico">📤</span> My Submissions</button>
       <button class="admin-nav-link" data-section="settings"><span class="nav-ico">⚙️</span> Settings</button>
     </nav>
@@ -115,6 +143,56 @@
 
       <!-- ══ OVERVIEW ══ -->
       <section class="admin-section active" id="section-overview">
+
+        <!-- ── LONE WORKER CHECK-IN ── -->
+        <div class="admin-panel checkin-panel">
+          <div class="admin-panel-head"><h3>🛟 Visit Check-In</h3></div>
+          <div class="admin-panel-body" style="padding:20px 24px;">
+            <div id="checkinIdle">
+              <p style="font-size:.88rem;color:var(--text-muted);margin-bottom:14px;">Before a visit, let us know where you're going and how long you expect to be. We'll check in with you if you don't confirm you're safe afterwards.</p>
+              <div class="checkin-grid">
+                <div class="field-group">
+                  <label for="checkinAddress">Visit address</label>
+                  <input type="text" id="checkinAddress" placeholder="e.g. 12 Example Street, Coventry">
+                </div>
+                <div class="field-group">
+                  <label for="checkinClient">Client reference (optional)</label>
+                  <input type="text" id="checkinClient" placeholder="e.g. Client initials or ref">
+                </div>
+                <div class="field-group">
+                  <label for="checkinDuration">Expected duration</label>
+                  <select id="checkinDuration" class="admin-select" style="width:100%;padding:9px 12px;">
+                    <option value="30">30 minutes</option>
+                    <option value="60" selected>1 hour</option>
+                    <option value="90">1.5 hours</option>
+                    <option value="120">2 hours</option>
+                    <option value="180">3 hours</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="startVisitBtn" style="width:auto;margin-top:14px;">
+                <span class="btn-text">Start visit</span>
+                <span class="btn-loading" style="display:none;">Starting…</span>
+              </button>
+            </div>
+
+            <div id="checkinActive" style="display:none;">
+              <div class="checkin-active-banner" id="checkinBanner">
+                <div>
+                  <strong id="checkinActiveTitle">Visit in progress</strong>
+                  <p id="checkinActiveMeta" class="cell-muted" style="margin:2px 0 0;font-size:.82rem;"></p>
+                </div>
+                <div id="checkinTimer" class="checkin-timer">—</div>
+              </div>
+              <button class="btn btn-primary" id="checkInSafeBtn" style="width:auto;margin-top:14px;">
+                <span class="btn-text">✅ Check in — I'm safe</span>
+                <span class="btn-loading" style="display:none;">Checking in…</span>
+              </button>
+              <button class="btn-tiny" id="cancelVisitBtn" style="margin-top:14px;margin-left:10px;">Cancel visit</button>
+            </div>
+          </div>
+        </div>
+
         <div class="stat-grid">
           <div class="stat-card">
             <div class="stat-icon">📋</div>
@@ -281,6 +359,81 @@
         </div>
       </section>
 
+      <!-- ══ SERVICE BOUNDARIES (acknowledgement) ══ -->
+      <section class="admin-section" id="section-boundaries">
+        <div class="admin-panel">
+          <div class="admin-panel-head"><h3>Service Boundaries — Internal Reference</h3></div>
+          <div class="admin-panel-body" style="padding:24px;">
+            <div id="boundariesStatus" class="boundaries-status">
+              <div class="empty-state"><div class="empty-icon">⏳</div>Checking your acknowledgement status…</div>
+            </div>
+
+            <div class="boundaries-doc">
+              <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:18px;"><strong>Critical principle:</strong> When in doubt about whether something falls within our scope, the answer is always to stop, check, and ask — never to improvise. If a situation arises that this document does not cover, escalate to the founder immediately.</p>
+
+              <h4>What Everyday Advocates is</h4>
+              <p>Everyday Advocates is a non-regulated social support service. We are not a care agency, a healthcare provider, a legal firm, or a financial services company. We provide social connection and companionship, practical help with life admin, technology support, and (as service lines expand) transition support and coaching. We are not regulated by the CQC, but we are bound by UK GDPR, safeguarding duties, insurance obligations, and our own standards.</p>
+
+              <h4>Companionship &amp; Wellbeing Visits</h4>
+              <p><strong>We do:</strong> friendly regular visits, meaningful conversation, walks and outings, light emotional support, wellbeing check-ins, and prompt reporting of concerns.</p>
+              <p><strong>We do not:</strong> provide counselling, therapy, or mental health treatment; act as a substitute for professional mental health care; make promises about contact frequency outside agreed visits; develop personal relationships with clients outside work; accept gifts of significant value; or share personal contact details.</p>
+              <div class="boundary-note boundary-note-strong">
+                <strong>Emotional support boundary</strong>
+                <p>Advocates may listen and offer reassurance. They must not attempt to counsel, diagnose, or treat emotional or mental health difficulties. If a client discloses significant distress, self-harm, or suicidal thoughts — follow the Safeguarding Protocol immediately. Do not attempt to manage this alone.</p>
+              </div>
+
+              <h4>Life Admin &amp; Support</h4>
+              <p><strong>We do:</strong> help reading official letters and documents, support completing forms (benefits, NHS, housing, council, pension), book and chase appointments, organise paperwork, and liaise with organisations with written consent.</p>
+              <p><strong>We do not:</strong> provide legal or financial advice, handle client cash/cards/bank transfers, access bank accounts even with permission, sign documents on a client's behalf, or make decisions for the client.</p>
+              <div class="boundary-note boundary-note-strong">
+                <strong>Financial boundary — absolute</strong>
+                <p>No advocate may ever handle client money, access bank accounts, or conduct financial transactions on behalf of a client under any circumstances. If a client requests this, explain it falls outside our service and offer to help them contact their bank, family member, or a regulated financial adviser. Any attempt to pressure an advocate into handling client finances must be reported to the founder immediately.</p>
+              </div>
+
+              <h4>Tech Support for Seniors</h4>
+              <p><strong>We do:</strong> set up smartphones/tablets already owned by the client, teach WhatsApp/FaceTime/video calling, help navigate the NHS App and online services, teach safe internet use and scam awareness, help with device settings and accessibility, and provide follow-up support in subsequent sessions.</p>
+              <p><strong>We do not:</strong> purchase devices or accounts on a client's behalf, access client email/social media/accounts without them present, set up accounts using the advocate's own details, provide IT support beyond consumer devices, diagnose or repair hardware, or provide ongoing remote support outside booked sessions.</p>
+              <div class="boundary-note">
+                <strong>Scam awareness</strong>
+                <p>If an advocate suspects a client has been targeted by a scam — or is about to be — they must raise this with the founder immediately. Do not contact the scammer, intervene in financial transactions, or advise specific financial action. Signpost to Action Fraud (0300 123 2040) and notify the family with client consent.</p>
+              </div>
+
+              <h4>Wellbeing Check-Ins</h4>
+              <p><strong>We do:</strong> note and record changes in mood/behaviour/presentation, ask open and gentle questions, record observations in the Session Summary Form after every visit, escalate concerns promptly, and signpost to appropriate support.</p>
+              <p><strong>We do not:</strong> conduct formal mental health assessments, diagnose any physical or mental health condition, administer or remind clients to take medication, provide clinical health advice, or contact a client's GP without founder approval.</p>
+
+              <h4>Everyday Transitions &amp; Everyday Futures — coming soon</h4>
+              <p>These service lines are in development. Do not offer or describe these services to clients until formally launched. Hospital to Home Transition will never involve personal care, medication administration, or clinical decision-making — the moment a request crosses into clinical territory, escalate immediately. Retirement Transition Coaching is forward-looking and growth-focused, not therapy — if a client presents with significant mental health difficulties during coaching, pause and refer them to their GP or a mental health professional.</p>
+
+              <h4>Universal boundaries — all service lines</h4>
+              <p><strong>Safeguarding:</strong> All advocates have a duty to report any safeguarding concern — this overrides client confidentiality. If there is immediate risk to life, call 999 first, then notify the founder. Suspected abuse, neglect, or exploitation must be reported to the founder the same day. Coventry Safeguarding Adults Board: 024 7683 3003.</p>
+              <p><strong>Lone worker safety:</strong> Always inform the founder of visit address, time, and expected duration before a visit. Check in after every visit — if a check-in is missed, the founder must attempt contact within 30 minutes. If you feel unsafe at any point, leave and contact the founder immediately — no explanation required.</p>
+              <p><strong>Confidentiality:</strong> All client information is strictly confidential. Client information must not be stored on personal devices. Photography of clients or their homes is prohibited without explicit written consent. Social media posts mentioning clients — even without names — are prohibited.</p>
+              <p><strong>Professional conduct:</strong> Advocates must not accept cash payments, accept loans or gifts over nominal value, be named in a client's will, form personal relationships with clients or their families, or share personal social media details. If a client attempts contact outside the service, notify the founder immediately.</p>
+              <p><strong>Physical boundaries:</strong> Advocates must not perform personal care tasks (washing, dressing, toileting, wound care) or lift/physically assist a client with mobility — this is a regulated care task. If a client falls and is injured, call 999 — do not attempt to lift them. Advocates must not drive clients in personal vehicles without specific insurance and founder approval.</p>
+
+              <h4>Escalation protocol</h4>
+              <p>When a boundary situation arises: <strong>Stop</strong> — do not proceed; <strong>Stabilise</strong> — ensure the client is safe; <strong>Contact the founder</strong> — same day, without exception; <strong>Document</strong> — record in the Incident Log or Lessons Learned Log; <strong>Do not discuss</strong> with family or third parties until advised by the founder.</p>
+              <div class="boundary-note boundary-note-strong">
+                <strong>When to call 999 first</strong>
+                <p>Medical emergency (stroke, heart attack, collapse, serious injury), immediate risk of harm to anyone, or fire/gas leak/other immediate physical danger. In all these cases: 999 first, founder second.</p>
+              </div>
+            </div>
+
+            <div class="boundaries-ack-box" id="boundariesAckBox">
+              <label class="ack-checkbox">
+                <input type="checkbox" id="boundariesAckCheck">
+                <span>I confirm that I have read, understood, and agree to work within these service boundaries.</span>
+              </label>
+              <button class="btn btn-primary" id="boundariesAckBtn" style="width:auto;margin-top:14px;" disabled>
+                <span class="btn-text">Confirm acknowledgement</span>
+                <span class="btn-loading" style="display:none;">Saving…</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ══ MY SUBMISSIONS ══ -->
       <section class="admin-section" id="section-my-submissions">
         <div class="admin-panel">
@@ -430,7 +583,7 @@
   );
 
   /* ── Navigation ── */
-  const TITLES = { overview:'Overview','forms-toolkit':'Forms & Documents', videos:'Training Videos', manuals:'Manuals & Guides','my-submissions':'My Submissions', settings:'Settings' };
+  const TITLES = { overview:'Overview','forms-toolkit':'Forms & Documents', videos:'Training Videos', manuals:'Manuals & Guides', boundaries:'Service Boundaries','my-submissions':'My Submissions', settings:'Settings' };
 
   document.querySelectorAll('[data-section]').forEach(btn => {
     btn.addEventListener('click', () => showSection(btn.dataset.section));
@@ -518,6 +671,8 @@
     loadManuals();
     renderForms();
     await loadMySubmissions();
+    await loadBoundariesAck();
+    await loadActiveVisit();
     renderOverview();
   }
 
@@ -746,6 +901,254 @@
 
   $('formsSearch').addEventListener('input', e => { formsSearch = e.target.value; renderMySubmissions(); });
   $('formsTypeFilter').addEventListener('change', e => { formsTypeFilter = e.target.value; renderMySubmissions(); });
+
+  /* ════════════════════════════════════════════════
+     SERVICE BOUNDARIES ACKNOWLEDGEMENT (SP requirement)
+     Staff must read & sign the boundaries doc; re-review
+     is due every 6 months.
+  ════════════════════════════════════════════════ */
+  const BOUNDARIES_VERSION = 'v1.0 (2025)';
+  const REVIEW_MONTHS = 6;
+  let latestAck = null;
+
+  async function loadBoundariesAck() {
+    const { data, error } = await window.supabaseClient
+      .from('boundaries_acknowledgements')
+      .select('*')
+      .eq('staff_id', currentUser.id)
+      .order('acknowledged_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      $('boundariesStatus').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Couldn't load your acknowledgement status.</div>`;
+      return;
+    }
+
+    latestAck = (data && data[0]) || null;
+    renderBoundariesStatus();
+  }
+
+  function renderBoundariesStatus() {
+    const box = $('boundariesStatus');
+    const ackBox = $('boundariesAckBox');
+    const check = $('boundariesAckCheck');
+    const btn = $('boundariesAckBtn');
+
+    if (!latestAck) {
+      box.innerHTML = `<div class="boundaries-banner boundaries-banner-warn">
+        <strong>Action needed</strong>
+        <p>Please read the document below and confirm your acknowledgement before your first visit.</p>
+      </div>`;
+      ackBox.style.display = 'block';
+      check.checked = false;
+      btn.disabled = true;
+      return;
+    }
+
+    const ackDate = new Date(latestAck.acknowledged_at);
+    const dueDate = new Date(ackDate);
+    dueDate.setMonth(dueDate.getMonth() + REVIEW_MONTHS);
+    const now = new Date();
+    const isDue = now >= dueDate;
+    const versionChanged = latestAck.doc_version !== BOUNDARIES_VERSION;
+
+    if (isDue || versionChanged) {
+      box.innerHTML = `<div class="boundaries-banner boundaries-banner-warn">
+        <strong>Re-acknowledgement due</strong>
+        <p>You last confirmed this on ${fmt(latestAck.acknowledged_at)}${versionChanged ? ' (an earlier version of this document)' : ''}. ${versionChanged ? 'This document has been updated — ' : ''}Please review it again and re-confirm below.</p>
+      </div>`;
+      ackBox.style.display = 'block';
+      check.checked = false;
+      btn.disabled = true;
+    } else {
+      box.innerHTML = `<div class="boundaries-banner boundaries-banner-ok">
+        <strong>✅ Up to date</strong>
+        <p>You confirmed you've read and understood this document on ${fmtFull(latestAck.acknowledged_at)}. Next review due ${fmt(dueDate.toISOString())}.</p>
+      </div>`;
+      ackBox.style.display = 'none';
+    }
+  }
+
+  $('boundariesAckCheck')?.addEventListener('change', (e) => {
+    $('boundariesAckBtn').disabled = !e.target.checked;
+  });
+
+  $('boundariesAckBtn')?.addEventListener('click', async () => {
+    const btn = $('boundariesAckBtn');
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loading').style.display = 'inline';
+
+    const { error } = await window.supabaseClient
+      .from('boundaries_acknowledgements')
+      .insert([{
+        staff_id: currentUser.id,
+        full_name: currentStaffRow.full_name || currentUser.email,
+        doc_version: BOUNDARIES_VERSION
+      }]);
+
+    if (error) {
+      showToast('Couldn\'t save your acknowledgement. Please try again.', 'error');
+      btn.disabled = false;
+    } else {
+      showToast('Thanks — your acknowledgement has been recorded.', 'success');
+      await loadBoundariesAck();
+    }
+    btn.querySelector('.btn-text').style.display = 'inline';
+    btn.querySelector('.btn-loading').style.display = 'none';
+  });
+
+  /* ════════════════════════════════════════════════
+     LONE WORKER CHECK-IN (SP requirement)
+     Staff record a visit before going; check in afterwards.
+     If the expected duration + 30 min grace passes without
+     a check-in, the visit is flagged "overdue" for admins.
+  ════════════════════════════════════════════════ */
+  const GRACE_MINUTES = 30;
+  let activeVisit = null;
+  let checkinTimerInterval = null;
+
+  async function loadActiveVisit() {
+    const { data, error } = await window.supabaseClient
+      .from('visit_checkins')
+      .select('*')
+      .eq('staff_id', currentUser.id)
+      .eq('status', 'in_progress')
+      .order('started_at', { ascending: false })
+      .limit(1);
+
+    if (!error && data && data.length) {
+      activeVisit = data[0];
+      showActiveVisit();
+    } else {
+      activeVisit = null;
+      showIdleVisit();
+    }
+  }
+
+  function showIdleVisit() {
+    $('checkinIdle').style.display = 'block';
+    $('checkinActive').style.display = 'none';
+    clearInterval(checkinTimerInterval);
+  }
+
+  function showActiveVisit() {
+    $('checkinIdle').style.display = 'none';
+    $('checkinActive').style.display = 'block';
+
+    const meta = [];
+    if (activeVisit.client_ref) meta.push(activeVisit.client_ref);
+    meta.push(activeVisit.address);
+    meta.push(`Expected ${activeVisit.expected_minutes} min`);
+    $('checkinActiveMeta').textContent = meta.join(' · ');
+
+    updateCheckinTimer();
+    clearInterval(checkinTimerInterval);
+    checkinTimerInterval = setInterval(updateCheckinTimer, 1000);
+  }
+
+  function updateCheckinTimer() {
+    if (!activeVisit) return;
+    const started = new Date(activeVisit.started_at);
+    const dueBy = new Date(started.getTime() + (activeVisit.expected_minutes + GRACE_MINUTES) * 60000);
+    const now = new Date();
+    const elapsedMs = now - started;
+    const isOverdue = now > dueBy;
+
+    const mins = Math.floor(elapsedMs / 60000);
+    const hrs = Math.floor(mins / 60);
+    const remMins = mins % 60;
+    const elapsedStr = hrs > 0 ? `${hrs}h ${remMins}m` : `${remMins}m`;
+
+    $('checkinTimer').textContent = elapsedStr;
+    $('checkinTimer').classList.toggle('overdue', isOverdue);
+    $('checkinBanner').classList.toggle('overdue', isOverdue);
+    $('checkinActiveTitle').textContent = isOverdue
+      ? '⚠️ Check-in overdue — please confirm you\'re safe'
+      : 'Visit in progress';
+
+    // Mark overdue in DB once (so admins see it)
+    if (isOverdue && activeVisit.status === 'in_progress' && !activeVisit._markedOverdue) {
+      activeVisit._markedOverdue = true;
+      window.supabaseClient.from('visit_checkins').update({ status: 'overdue' }).eq('id', activeVisit.id);
+    }
+  }
+
+  $('startVisitBtn')?.addEventListener('click', async () => {
+    const address = $('checkinAddress').value.trim();
+    const clientRef = $('checkinClient').value.trim();
+    const duration = parseInt($('checkinDuration').value, 10);
+
+    if (!address) { showToast('Please enter the visit address.', 'error'); return; }
+
+    const btn = $('startVisitBtn');
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loading').style.display = 'inline';
+
+    const { data, error } = await window.supabaseClient
+      .from('visit_checkins')
+      .insert([{
+        staff_id: currentUser.id,
+        staff_name: currentStaffRow.full_name || currentUser.email,
+        client_ref: clientRef || null,
+        address,
+        expected_minutes: duration,
+        status: 'in_progress'
+      }])
+      .select()
+      .single();
+
+    btn.disabled = false;
+    btn.querySelector('.btn-text').style.display = 'inline';
+    btn.querySelector('.btn-loading').style.display = 'none';
+
+    if (error) { showToast('Couldn\'t start visit. Please try again.', 'error'); return; }
+
+    activeVisit = data;
+    showActiveVisit();
+    showToast('Visit started. Stay safe!', 'success');
+  });
+
+  $('checkInSafeBtn')?.addEventListener('click', async () => {
+    if (!activeVisit) return;
+    const btn = $('checkInSafeBtn');
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loading').style.display = 'inline';
+
+    const { error } = await window.supabaseClient
+      .from('visit_checkins')
+      .update({ status: 'completed', checked_in_at: new Date().toISOString() })
+      .eq('id', activeVisit.id);
+
+    btn.disabled = false;
+    btn.querySelector('.btn-text').style.display = 'inline';
+    btn.querySelector('.btn-loading').style.display = 'none';
+
+    if (error) { showToast('Couldn\'t check in. Please try again.', 'error'); return; }
+
+    showToast('Checked in — glad you\'re safe!', 'success');
+    activeVisit = null;
+    $('checkinAddress').value = '';
+    $('checkinClient').value = '';
+    showIdleVisit();
+  });
+
+  $('cancelVisitBtn')?.addEventListener('click', async () => {
+    if (!activeVisit) return;
+    if (!confirm('Cancel this visit record? Only do this if it was started by mistake.')) return;
+
+    const { error } = await window.supabaseClient
+      .from('visit_checkins')
+      .update({ status: 'completed', checked_in_at: new Date().toISOString(), notes: 'Cancelled by staff' })
+      .eq('id', activeVisit.id);
+
+    if (error) { showToast('Couldn\'t cancel visit.', 'error'); return; }
+    activeVisit = null;
+    showIdleVisit();
+    showToast('Visit cancelled.', 'success');
+  });
 
   /* ════════════════════════════════════════════════
      OVERVIEW
